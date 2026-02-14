@@ -1,0 +1,73 @@
+🔌 WebSocket server running on port 5004
+
+╔══════════════════════════════════════════════════════════╗
+║         White-Label Chat System API                      ║
+║                                                          ║
+║  Status: Running                                         ║
+║  Port: 5003                                           ║
+║  WebSocket Port: 5004                              ║
+║  Database: chat_system_db                                ║
+║                                                          ║
+║  Chat Endpoints:                                         ║
+║  - GET  /api/chat/device                                ║
+║  - POST /api/agent/login                                ║
+║  - GET  /api/agents                                     ║
+║  - POST /api/contact                                    ║
+║  - GET  /api/contact/messages                           ║
+║  - POST /api/chat/customer                              ║
+║  - GET  /health                                         ║
+╚══════════════════════════════════════════════════════════╝
+  
+✅ Database connected successfully
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+👤 Agent registered: Agent 2 (agent_2)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: agent (agent_2)
+👤 Agent disconnected: Agent 2 (agent_2)
+👤 Agent registered: Agent 2 (agent_2)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: agent (agent_2)
+👤 Agent disconnected: Agent 2 (agent_2)
+👤 Agent registered: Agent 2 (agent_2)
+👤 Agent registered: Agent 2 (agent_2)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+💬 User message from user_1769854828924_kl1hkgzth: [File: Screenshot 2026-01-29 at 8.16.29 PM.png]
+💾 Saved customer message to database: 140
+📋 Session user_1769854828924_kl1hkgzth - assignedAgentId: undefined, wantsHuman: false
+📋 All session assignments: {}
+📋 Active agents: [ 'agent_2' ]
+🤖 AI Response: I understand. Let me help you with that. Can you tell me more about what you're looking for?
+📋 Customer info saved for session user_1769854828924_kl1hkgzth: john doe (Azerbaijan)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: agent (agent_2)
+👤 Agent disconnected: Agent 2 (agent_2)
+📴 Chat client disconnected: agent (agent_2)
+👤 Agent registered: Agent 2 (agent_2)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: agent (agent_2)
+👤 Agent disconnected: Agent 2 (agent_2)
+👤 Agent registered: Agent 2 (agent_2)
+👤 Agent registered: Agent 2 (agent_2)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: agent (agent_2)
+👤 Agent disconnected: Agent 2 (agent_2)
+📴 Chat client disconnected: agent (agent_2)
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📱 Chat client registered: user (user_1769854828924_kl1hkgzth) on WhiteLabel from ::1
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)
+📴 Chat client disconnected: user (user_1769854828924_kl1hkgzth)

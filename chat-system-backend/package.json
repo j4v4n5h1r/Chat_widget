@@ -1,0 +1,32 @@
+{
+  "name": "white-label-chat-system",
+  "version": "1.0.0",
+  "description": "White-Label Chat System with Multi-Agent Support and AI Auto-Response",
+  "main": "chat-server.js",
+  "scripts": {
+    "start": "node chat-server.js",
+    "dev": "nodemon chat-server.js"
+  },
+  "keywords": [
+    "chat",
+    "websocket",
+    "customer-support",
+    "multi-agent",
+    "ai-assistant"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "pg": "^8.11.3",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

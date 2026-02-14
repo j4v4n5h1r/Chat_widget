@@ -1,0 +1,11 @@
+
+> chat-widget@1.0.0 dev
+> vite --port 3002
+
+Port 3002 is in use, trying another one...
+
+  VITE v4.5.14  ready in 247 ms
+
+  ➜  Local:   http://localhost:3003/
+  ➜  Network: http://192.168.1.139:3003/
+3:05:07 PM [vite] page reload test-multiple-files.html
