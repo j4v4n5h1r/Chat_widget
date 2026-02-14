@@ -992,11 +992,6 @@ function ChatPage({ onBack }) {
                       />
                     </div>
                   </div>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {customerInfo.countryCode === '+44'
-                      ? 'UK: Must start with 07 (mobile) or 01/02 (landline)'
-                      : 'Ireland: Must start with 0'}
-                  </p>
                 </div>
 
                 <button
