@@ -988,7 +988,7 @@ function ChatPage({ onBack }) {
                         minLength="10"
                         maxLength="10"
                         className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        placeholder={customerInfo.countryCode === '+44' ? '07123456789' : '0871234567'}
+                        placeholder="1234567890"
                       />
                     </div>
                   </div>
