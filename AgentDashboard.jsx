@@ -177,6 +177,8 @@ function AgentDashboard() {
               project: s.project,
               isOnline: s.isOnline,
               customerName: s.customerName,
+              customerPhone: s.customerPhone || null,
+              messageCount: s.messageCount || 0,
               lastActivity: Date.now()
             });
           }
@@ -1039,9 +1041,9 @@ function AgentDashboard() {
                         {session.customerName || session.customerInfo?.fullName || sessionId.split('_')[1]?.substring(0, 8) + '...'}
                       </span>
                     </div>
-                    {session.customerInfo?.phone && (
+                    {(session.customerInfo?.phone || session.customerPhone) && (
                       <span className="text-gray-400 text-[9px] md:text-[10px] ml-4 md:ml-5 truncate">
-                        {session.customerInfo.phone}
+                        {session.customerInfo?.phone || session.customerPhone}
                       </span>
                     )}
                   </div>
@@ -1057,7 +1059,7 @@ function AgentDashboard() {
                     <span className="hidden sm:inline">{session.project}</span>
                   </span>
                   <span className="text-gray-500 text-[10px] md:text-xs">
-                    {session.messages?.length || 0} msg
+                    {session.messages?.length || session.messageCount || 0} msg
                   </span>
                   {userTyping[sessionId] && (
                     <span className="text-purple-400 text-[10px] md:text-xs animate-pulse">typing...</span>

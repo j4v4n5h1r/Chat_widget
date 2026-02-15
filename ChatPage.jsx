@@ -43,6 +43,7 @@ function ChatPage({ onBack }) {
   const [agentMessageCount, setAgentMessageCount] = useState(0);
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [customerId, setCustomerId] = useState(null);
+  const [formError, setFormError] = useState('');
 
   // Flag for marking all messages as read
   const [shouldMarkAllRead, setShouldMarkAllRead] = useState(false);
@@ -568,6 +569,7 @@ function ChatPage({ onBack }) {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim() || isBlocked) return;
+    if (showForm && !formSubmitted) return;
 
     // Check rate limit before sending
     const allowed = await checkSecurity('message');
@@ -681,7 +683,13 @@ function ChatPage({ onBack }) {
 
       const result = await response.json();
 
+      if (!result.success) {
+        setFormError(result.error || 'Failed to save. Please try again.');
+        return;
+      }
+
       if (result.success) {
+        setFormError('');
         setCustomerId(result.customerId);
         setFormSubmitted(true);
         setShowForm(false);
@@ -901,14 +909,9 @@ function ChatPage({ onBack }) {
         {showForm && !formSubmitted && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-50">
             <div className="bg-gray-900 border border-purple-500/30 rounded-xl md:rounded-2xl p-4 md:p-6 w-full max-w-md shadow-2xl">
-              <div className="flex items-center justify-between mb-4 md:mb-6">
+              <div className="mb-4 md:mb-6">
                 <h3 className="text-lg md:text-xl font-bold text-white">Please introduce yourself</h3>
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="text-gray-400 hover:text-white p-1"
-                >
-                  <X size={20} />
-                </button>
+                <p className="text-gray-400 text-xs mt-1">Please fill in the form to continue chatting</p>
               </div>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -920,7 +923,7 @@ function ChatPage({ onBack }) {
                       type="text"
                       required
                       value={customerInfo.fullName}
-                      onChange={(e) => setCustomerInfo(prev => ({ ...prev, fullName: e.target.value }))}
+                      onChange={(e) => { setFormError(''); setCustomerInfo(prev => ({ ...prev, fullName: e.target.value })); }}
                       className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="John Doe"
                     />
@@ -935,7 +938,7 @@ function ChatPage({ onBack }) {
                       type="email"
                       required
                       value={customerInfo.email}
-                      onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={(e) => { setFormError(''); setCustomerInfo(prev => ({ ...prev, email: e.target.value })); }}
                       className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
                       placeholder="john@example.com"
                     />
@@ -976,6 +979,12 @@ function ChatPage({ onBack }) {
                     </div>
                   </div>
                 </div>
+
+                {formError && (
+                  <div className="bg-red-500/20 border border-red-500/50 text-red-400 text-sm px-4 py-2.5 rounded-xl text-center">
+                    {formError}
+                  </div>
+                )}
 
                 <button
                   type="submit"

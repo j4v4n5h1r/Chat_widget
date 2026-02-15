@@ -506,12 +506,14 @@ wss.on('connection', (ws, req) => {
           // First, get all unique session IDs from database
           try {
             const dbSessionsResult = await pool.query(`
-              SELECT DISTINCT session_id,
-                     MAX(created_at) as last_activity,
-                     (SELECT full_name FROM chat_customers WHERE session_id = cm.session_id ORDER BY created_at DESC LIMIT 1) as customer_name
+              SELECT DISTINCT cm.session_id,
+                     MAX(cm.created_at) as last_activity,
+                     (SELECT full_name FROM chat_customers WHERE session_id = cm.session_id ORDER BY created_at DESC LIMIT 1) as customer_name,
+                     (SELECT phone FROM chat_customers WHERE session_id = cm.session_id ORDER BY created_at DESC LIMIT 1) as customer_phone,
+                     COUNT(cm.id) as message_count
               FROM contact_messages cm
-              WHERE session_id IS NOT NULL
-              GROUP BY session_id
+              WHERE cm.session_id IS NOT NULL
+              GROUP BY cm.session_id
               ORDER BY last_activity DESC
             `);
 
@@ -528,6 +530,8 @@ wss.on('connection', (ws, req) => {
                 project: activeClient?.project || 'Unknown',
                 isOnline: activeClient ? activeClient.ws.readyState === WebSocket.OPEN : false,
                 customerName: row.customer_name || null,
+                customerPhone: row.customer_phone || null,
+                messageCount: parseInt(row.message_count) || 0,
                 lastActivity: row.last_activity
               });
             });
@@ -1769,6 +1773,22 @@ app.post('/api/chat/customer', async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'All fields are required'
+      });
+    }
+
+    // Check if fullName or email is already used by another session
+    const duplicateCheck = await pool.query(
+      'SELECT session_id, full_name, email FROM chat_customers WHERE (LOWER(full_name) = LOWER($1) OR LOWER(email) = LOWER($2)) AND session_id != $3',
+      [fullName, email, sessionId]
+    );
+
+    if (duplicateCheck.rows.length > 0) {
+      const dup = duplicateCheck.rows[0];
+      const dupField = dup.full_name.toLowerCase() === fullName.toLowerCase() ? 'username' : 'email';
+      return res.status(409).json({
+        success: false,
+        error: `This ${dupField} is already in use. Please use a different ${dupField}.`,
+        field: dupField
       });
     }
 
