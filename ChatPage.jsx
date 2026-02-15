@@ -469,6 +469,13 @@ function ChatPage({ onBack }) {
   const uploadAndSendFiles = async () => {
     if (selectedFiles.length === 0) return;
 
+    // Check security/rate limit before uploading
+    const allowed = await checkSecurity('message');
+    if (!allowed) {
+      setSelectedFiles([]);
+      return;
+    }
+
     const filesToSend = [...selectedFiles];
     setSelectedFiles([]);
     setIsUploading(true);
@@ -644,30 +651,6 @@ function ChatPage({ onBack }) {
   // Handle form submit
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate phone number based on country code
-    const phone = customerInfo.phone;
-    const countryCode = customerInfo.countryCode;
-
-    if (countryCode === '+44') {
-      // UK phone validation: Must start with 07 (mobile) or 01/02 (landline)
-      if (!phone.match(/^(07|01|02)\d{8,9}$/)) {
-        alert('Please enter a valid UK phone number (must start with 07, 01, or 02)');
-        return;
-      }
-    } else if (countryCode === '+353') {
-      // Ireland phone validation: Must start with 0 followed by valid prefix
-      if (!phone.match(/^0[1-9]\d{7,8}$/)) {
-        alert('Please enter a valid Irish phone number (must start with 0)');
-        return;
-      }
-    }
-
-    // Check for obviously fake numbers
-    if (phone.match(/^(123456|111111|000000|999999)/)) {
-      alert('Please enter a real phone number');
-      return;
-    }
 
     try {
       // Get real IP and country from client side

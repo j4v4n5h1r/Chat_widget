@@ -216,9 +216,9 @@ const getOnlineAgents = () => {
 
 // Rate limit config
 const RATE_LIMITS = {
-  MAX_SESSIONS_PER_HOUR: 3,
-  MAX_MESSAGES_PER_MINUTE: 5,
-  MAX_MESSAGES_PER_HOUR: 20
+  MAX_SESSIONS_PER_HOUR: 10,
+  MAX_MESSAGES_PER_MINUTE: 30,
+  MAX_MESSAGES_PER_HOUR: 200
 };
 
 // Check rate limits
@@ -1572,10 +1572,14 @@ app.post('/api/contact', async (req, res) => {
   try {
     const { name, email, message, project, fileUrl, fileType } = req.body;
 
-    if (!name || !message) {
+    console.log('📨 /api/contact received:', { name, message, fileUrl, fileType });
+
+    // Allow empty message if there's a file attachment
+    if (!name || (!message && !fileUrl)) {
+      console.log('❌ Validation failed - name:', name, 'message:', message, 'fileUrl:', fileUrl);
       return res.status(400).json({
         success: false,
-        error: 'Name and message are required'
+        error: 'Name and message or file are required'
       });
     }
 
