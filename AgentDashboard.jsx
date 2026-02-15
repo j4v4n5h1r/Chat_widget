@@ -176,7 +176,8 @@ function AgentDashboard() {
               messages: [],
               project: s.project,
               isOnline: s.isOnline,
-              customerName: s.customerName
+              customerName: s.customerName,
+              lastActivity: Date.now()
             });
           }
         });
@@ -193,11 +194,13 @@ function AgentDashboard() {
             messages: [],
             project: data.project,
             isOnline: true,
-            customerName: data.customerName
+            customerName: data.customerName,
+            lastActivity: Date.now()
           });
         } else {
           const session = newSessions.get(data.sessionId);
           session.isOnline = true;
+          session.lastActivity = Date.now();
           if (data.customerName) session.customerName = data.customerName;
           newSessions.set(data.sessionId, session);
         }
@@ -214,6 +217,7 @@ function AgentDashboard() {
         };
 
         session.isOnline = data.isOnline ?? session.isOnline;
+        session.lastActivity = Date.now();
         if (data.customerInfo && !session.customerInfo) {
           session.customerInfo = data.customerInfo;
         }
@@ -297,7 +301,8 @@ function AgentDashboard() {
             project: data.project,
             isOnline: true,
             customerName: data.customerName,
-            hasNewMessage: true
+            hasNewMessage: true,
+            lastActivity: Date.now()
           });
         }
         return newSessions;
@@ -374,6 +379,7 @@ function AgentDashboard() {
           if (!messageExists) {
             newSessions.set(data.sessionId, {
               ...session,
+              lastActivity: Date.now(),
               messages: [...session.messages, {
                 id: data.messageId,
                 text: data.text,
@@ -1013,7 +1019,7 @@ function AgentDashboard() {
             <span>All Chats ({allSessions.size})</span>
           </div>
           <div className="space-y-1.5 md:space-y-2">
-            {Array.from(allSessions.entries()).map(([sessionId, session]) => (
+            {Array.from(allSessions.entries()).sort((a, b) => (b[1].lastActivity || 0) - (a[1].lastActivity || 0)).map(([sessionId, session]) => (
               <div
                 key={sessionId}
                 onClick={() => {

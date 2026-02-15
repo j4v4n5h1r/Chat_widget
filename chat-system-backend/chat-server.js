@@ -812,86 +812,8 @@ wss.on('connection', (ws, req) => {
           }
         }
 
-        // Send AI response only if NOT assigned to agent
-        if (!assignedAgentId) {
-          const aiResponse = generateAIResponse(data.text, clientSessionId);
-          console.log(`🤖 AI Response: ${aiResponse.text}`);
-
-          // Small delay to make it feel more natural
-          setTimeout(async () => {
-            const aiMessageId = `ai_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-
-            // Send AI response to user via WebSocket (disguised as regular support)
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({
-                type: 'admin_message',
-                text: aiResponse.text,
-                timestamp: new Date().toISOString(),
-                adminName: 'Support',
-                messageId: aiMessageId
-              }));
-            }
-
-            // Save AI response to database (saved as Support, not AI)
-            try {
-              await pool.query(
-                'INSERT INTO contact_replies (message_id, reply_text, admin_name) VALUES ($1, $2, $3)',
-                [data.messageId, aiResponse.text, 'Support']
-              );
-            } catch (err) {
-              console.error('Error saving AI response:', err);
-            }
-
-            // Broadcast AI response to all agents (agents can see it's AI internally)
-            broadcastToAgents({
-              type: 'agent_replied',
-              sessionId: clientSessionId,
-              agentId: 'ai',
-              agentName: 'Support (AI)',
-              text: aiResponse.text,
-              messageId: aiMessageId,
-              timestamp: new Date().toISOString(),
-              isAI: true
-            });
-
-            // Message delivered to user - notify agents
-            setTimeout(() => {
-              broadcastToAgents({
-                type: 'message_status_update',
-                messageId: aiMessageId,
-                sessionId: clientSessionId,
-                status: 'delivered'
-              });
-            }, 100);
-
-            // If user requested human, notify agents
-            if (aiResponse.isHumanRequest) {
-              // Get customer name
-              pool.query(
-                'SELECT full_name FROM chat_customers WHERE session_id = $1 ORDER BY created_at DESC LIMIT 1',
-                [clientSessionId]
-              ).then(result => {
-                const customerName = result.rows[0]?.full_name || null;
-                broadcastToAgents({
-                  type: 'human_support_requested',
-                  sessionId: clientSessionId,
-                  project: project,
-                  customerName: customerName,
-                  timestamp: new Date().toISOString()
-                });
-              }).catch(err => {
-                console.error('Error getting customer name:', err);
-                broadcastToAgents({
-                  type: 'human_support_requested',
-                  sessionId: clientSessionId,
-                  project: project,
-                  customerName: null,
-                  timestamp: new Date().toISOString()
-                });
-              });
-            }
-          }, 1000 + Math.random() * 1000); // 1-2 second delay
-        }
+        // AI auto-response DISABLED - only agents respond
+        // if (!assignedAgentId) { ... }
       }
 
       // Admin sends reply
@@ -1118,13 +1040,19 @@ wss.on('connection', (ws, req) => {
 console.log(`🔌 WebSocket server running on port ${WS_PORT}`);
 
 // PostgreSQL connection for Chat System
-const pool = new Pool({
+const poolConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'chat_system_db',
   user: process.env.DB_USER || process.env.USER,
-  password: process.env.DB_PASSWORD || '',
-});
+};
+
+// Only add password if it exists
+if (process.env.DB_PASSWORD) {
+  poolConfig.password = process.env.DB_PASSWORD;
+}
+
+const pool = new Pool(poolConfig);
 
 // Test database connection
 pool.query('SELECT NOW()', (err, res) => {
