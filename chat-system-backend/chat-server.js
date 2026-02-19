@@ -275,6 +275,9 @@ const checkRateLimit = (deviceId, type) => {
 
 // ==================== AI AUTO-RESPONSE SYSTEM ====================
 
+// AI toggle - admin can enable/disable via admin panel (default: OFF)
+let aiEnabled = false;
+
 // Track which sessions want human support
 const humanSupportRequests = new Set();
 
@@ -816,8 +819,69 @@ wss.on('connection', (ws, req) => {
           }
         }
 
-        // AI auto-response DISABLED - only agents respond
-        // if (!assignedAgentId) { ... }
+        // AI auto-response - only if admin enabled it AND session not assigned to agent
+        if (aiEnabled && !assignedAgentId) {
+          const aiResponse = generateAIResponse(data.text, clientSessionId);
+          console.log(`🤖 AI Response: ${aiResponse.text}`);
+
+          setTimeout(async () => {
+            const aiMessageId = `ai_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'admin_message',
+                text: aiResponse.text,
+                timestamp: new Date().toISOString(),
+                adminName: 'Support',
+                messageId: aiMessageId
+              }));
+            }
+
+            try {
+              await pool.query(
+                'INSERT INTO contact_replies (message_id, reply_text, admin_name) VALUES ($1, $2, $3)',
+                [data.messageId, aiResponse.text, 'Support']
+              );
+            } catch (err) {
+              console.error('Error saving AI response:', err);
+            }
+
+            broadcastToAgents({
+              type: 'agent_replied',
+              sessionId: clientSessionId,
+              agentId: 'ai',
+              agentName: 'Support (AI)',
+              text: aiResponse.text,
+              messageId: aiMessageId,
+              timestamp: new Date().toISOString(),
+              isAI: true
+            });
+
+            setTimeout(() => {
+              broadcastToAgents({
+                type: 'message_status_update',
+                messageId: aiMessageId,
+                sessionId: clientSessionId,
+                status: 'delivered'
+              });
+            }, 100);
+
+            if (aiResponse.isHumanRequest) {
+              pool.query(
+                'SELECT full_name FROM chat_customers WHERE session_id = $1 ORDER BY created_at DESC LIMIT 1',
+                [clientSessionId]
+              ).then(result => {
+                broadcastToAgents({
+                  type: 'human_support_requested',
+                  sessionId: clientSessionId,
+                  project: project,
+                  customerName: result.rows[0]?.full_name || null,
+                  timestamp: new Date().toISOString()
+                });
+              }).catch(() => {});
+            }
+          }, 1000 + Math.random() * 1000);
+        }
       }
 
       // Admin sends reply
@@ -1168,6 +1232,19 @@ app.get('/api/agents', async (req, res) => {
     console.error('Error fetching agents:', error);
     res.status(500).json({ success: false, error: 'Database error' });
   }
+});
+
+// AI toggle endpoints (admin only)
+app.get('/api/admin/ai-settings', (req, res) => {
+  res.json({ success: true, aiEnabled });
+});
+
+app.post('/api/admin/ai-settings', (req, res) => {
+  const { enabled } = req.body;
+  aiEnabled = !!enabled;
+  console.log(`🤖 AI auto-response ${aiEnabled ? 'ENABLED' : 'DISABLED'} by admin`);
+  broadcastToAgents({ type: 'ai_status_changed', aiEnabled });
+  res.json({ success: true, aiEnabled });
 });
 
 // Get all customers (admin only)

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Plus, Users, Shield, LogOut, Download, UserCircle, ShieldAlert } from 'lucide-react';
+import { Trash2, Plus, Users, Shield, LogOut, Download, UserCircle, ShieldAlert, Bot } from 'lucide-react';
 import AdminLogin from './AdminLogin';
 import * as XLSX from 'xlsx';
 
@@ -18,6 +18,8 @@ function ChatAdmin() {
   const [agents, setAgents] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [newAgent, setNewAgent] = useState({
     username: '',
     password: '',
@@ -35,11 +37,12 @@ function ChatAdmin() {
     }
   }, []);
 
-  // Load agents and customers when authenticated
+  // Load agents, customers and AI status when authenticated
   useEffect(() => {
     if (admin && token) {
       loadAgents();
       loadCustomers();
+      loadAiStatus();
     }
   }, [admin, token]);
 
@@ -61,6 +64,32 @@ function ChatAdmin() {
   if (!admin || !token) {
     return <AdminLogin onLogin={handleLogin} />;
   }
+
+  const loadAiStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/admin/ai-settings`);
+      const data = await response.json();
+      if (data.success) setAiEnabled(data.aiEnabled);
+    } catch (error) {
+      console.error('Error loading AI status:', error);
+    }
+  };
+
+  const toggleAi = async () => {
+    setAiLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/ai-settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: !aiEnabled })
+      });
+      const data = await response.json();
+      if (data.success) setAiEnabled(data.aiEnabled);
+    } catch (error) {
+      console.error('Error toggling AI:', error);
+    }
+    setAiLoading(false);
+  };
 
   const loadAgents = async () => {
     try {
@@ -197,6 +226,19 @@ function ChatAdmin() {
             </div>
           </div>
           <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+            <button
+              onClick={toggleAi}
+              disabled={aiLoading}
+              className={`flex-1 md:flex-none px-3 md:px-6 py-2 md:py-3 rounded-lg flex items-center justify-center gap-1.5 md:gap-2 text-sm md:text-base border transition-all ${
+                aiEnabled
+                  ? 'bg-green-500/20 border-green-500/50 text-green-400 hover:bg-green-500/30'
+                  : 'bg-gray-700/50 border-gray-600 text-gray-400 hover:bg-gray-700'
+              } disabled:opacity-50`}
+            >
+              <Bot size={16} className="md:w-5 md:h-5" />
+              <span className="hidden sm:inline">AI {aiEnabled ? 'ON' : 'OFF'}</span>
+              <span className="sm:hidden">AI</span>
+            </button>
             <button
               onClick={() => setShowCreateForm(true)}
               className="flex-1 md:flex-none bg-purple-500 hover:bg-purple-600 text-white px-3 md:px-6 py-2 md:py-3 rounded-lg flex items-center justify-center gap-1.5 md:gap-2 text-sm md:text-base"

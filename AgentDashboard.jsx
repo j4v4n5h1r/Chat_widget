@@ -179,7 +179,7 @@ function AgentDashboard() {
               customerName: s.customerName,
               customerPhone: s.customerPhone || null,
               messageCount: s.messageCount || 0,
-              lastActivity: Date.now()
+              lastActivity: s.lastActivity ? new Date(s.lastActivity).getTime() : 0
             });
           }
         });
