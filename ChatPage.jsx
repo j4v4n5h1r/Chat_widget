@@ -726,9 +726,9 @@ function ChatPage({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800/30 to-purple-950 flex flex-col">
+    <div className="min-h-screen bg-[#1a0a12] flex flex-col">
       {/* Header - Fixed at top */}
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-pink-600 p-3 md:p-4 shadow-lg">
+      <header className="sticky top-0 z-50 bg-[#300A24] p-3 md:p-4 shadow-lg border-b border-[#E95420]/30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4">
             {onBack && (
@@ -764,7 +764,7 @@ function ChatPage({ onBack }) {
         <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4">
           {isLoadingHistory && (
             <div className="text-center text-gray-400 py-4">
-              <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+              <div className="animate-spin w-6 h-6 border-2 border-[#E95420] border-t-transparent rounded-full mx-auto mb-2"></div>
               Loading messages...
             </div>
           )}
@@ -777,12 +777,12 @@ function ChatPage({ onBack }) {
               <div
                 className={`max-w-[90%] md:max-w-[85%] lg:max-w-[70%] rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 ${
                   msg.sender === 'user'
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                    : 'bg-gray-800/80 text-gray-200 border border-gray-700'
+                    ? 'bg-[#E95420] text-white'
+                    : 'bg-[#2C001E]/90 text-gray-200 border border-[#E95420]/20'
                 }`}
               >
                 {msg.adminName && (
-                  <span className="text-[10px] md:text-xs text-purple-400 block mb-1 font-medium">{msg.adminName}</span>
+                  <span className="text-[10px] md:text-xs text-[#E95420] block mb-1 font-medium">{msg.adminName}</span>
                 )}
 
                 {/* File attachment */}
@@ -892,9 +892,9 @@ function ChatPage({ onBack }) {
               <div className="bg-gray-800/80 text-gray-400 border border-gray-700 rounded-2xl px-5 py-3">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <span className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                   </div>
                   <span className="text-sm">typing...</span>
                 </div>
@@ -908,7 +908,7 @@ function ChatPage({ onBack }) {
         {/* Customer Form Modal */}
         {showForm && !formSubmitted && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-50">
-            <div className="bg-gray-900 border border-purple-500/30 rounded-xl md:rounded-2xl p-4 md:p-6 w-full max-w-md shadow-2xl">
+            <div className="bg-gray-900 border border-[#E95420]/30 rounded-xl md:rounded-2xl p-4 md:p-6 w-full max-w-md shadow-2xl">
               <div className="mb-4 md:mb-6">
                 <h3 className="text-lg md:text-xl font-bold text-white">Please introduce yourself</h3>
                 <p className="text-gray-400 text-xs mt-1">Please fill in the form to continue chatting</p>
@@ -924,7 +924,7 @@ function ChatPage({ onBack }) {
                       required
                       value={customerInfo.fullName}
                       onChange={(e) => { setFormError(''); setCustomerInfo(prev => ({ ...prev, fullName: e.target.value })); }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="John Doe"
                     />
                   </div>
@@ -939,7 +939,7 @@ function ChatPage({ onBack }) {
                       required
                       value={customerInfo.email}
                       onChange={(e) => { setFormError(''); setCustomerInfo(prev => ({ ...prev, email: e.target.value })); }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -952,7 +952,7 @@ function ChatPage({ onBack }) {
                     <select
                       value={customerInfo.countryCode}
                       onChange={(e) => setCustomerInfo(prev => ({ ...prev, countryCode: e.target.value }))}
-                      className="bg-gray-800 border border-gray-700 text-white px-3 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 w-28"
+                      className="bg-gray-800 border border-gray-700 text-white px-3 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420] w-28"
                     >
                       <option value="+44">🇬🇧 +44</option>
                       <option value="+353">🇮🇪 +353</option>
@@ -973,7 +973,7 @@ function ChatPage({ onBack }) {
                         pattern="[0-9]{10}"
                         minLength="10"
                         maxLength="10"
-                        className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                         placeholder="1234567890"
                       />
                     </div>
@@ -988,7 +988,7 @@ function ChatPage({ onBack }) {
 
                 <button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
+                  className="w-full bg-[#E95420] hover:bg-[#d44516] text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
                 >
                   Continue Chat
                 </button>
@@ -1029,11 +1029,11 @@ function ChatPage({ onBack }) {
               {selectedFiles.map((file, index) => (
                 <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-lg p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2">
                   {file.type.startsWith('image/') ? (
-                    <Image size={14} className="text-purple-400 md:w-4 md:h-4" />
+                    <Image size={14} className="text-[#E95420] md:w-4 md:h-4" />
                   ) : file.type.startsWith('video/') ? (
-                    <Video size={14} className="text-purple-400 md:w-4 md:h-4" />
+                    <Video size={14} className="text-[#E95420] md:w-4 md:h-4" />
                   ) : (
-                    <File size={14} className="text-purple-400 md:w-4 md:h-4" />
+                    <File size={14} className="text-[#E95420] md:w-4 md:h-4" />
                   )}
                   <span className="text-white text-[10px] md:text-xs">{file.name.length > 12 ? file.name.substring(0, 12) + '...' : file.name}</span>
                   <button
@@ -1049,7 +1049,7 @@ function ChatPage({ onBack }) {
                 type="button"
                 onClick={uploadAndSendFiles}
                 disabled={isUploading}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-semibold flex items-center gap-1"
+                className="bg-[#E95420] hover:bg-[#d44516] disabled:opacity-50 disabled:cursor-not-allowed text-white px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-semibold flex items-center gap-1"
               >
                 {isUploading ? (
                   <>
@@ -1082,7 +1082,7 @@ function ChatPage({ onBack }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isBlocked || isUploading}
-              className="bg-gray-800/50 border border-gray-700 text-purple-400 px-3 py-3 md:px-4 md:py-4 rounded-lg md:rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-gray-800/50 border border-gray-700 text-[#E95420] px-3 py-3 md:px-4 md:py-4 rounded-lg md:rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#E95420] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               title="Attach file"
             >
               {isUploading ? (
@@ -1100,14 +1100,14 @@ function ChatPage({ onBack }) {
                 sendTypingEvent();
               }}
               disabled={isBlocked}
-              className="flex-1 bg-gray-800/50 border border-gray-700 text-white px-3 py-3 md:px-5 md:py-4 rounded-lg md:rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-500 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gray-800/50 border border-gray-700 text-white px-3 py-3 md:px-5 md:py-4 rounded-lg md:rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420] placeholder-gray-500 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder={isBlocked ? "Chat disabled" : "Type your message..."}
               autoFocus
             />
             <button
               type="submit"
               disabled={!inputMessage.trim() || isBlocked}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 md:px-6 md:py-4 rounded-lg md:rounded-xl transition-all transform hover:scale-105"
+              className="bg-[#E95420] hover:bg-[#d44516] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 md:px-6 md:py-4 rounded-lg md:rounded-xl transition-all transform hover:scale-105"
             >
               <Send size={18} className="md:w-5 md:h-5" />
             </button>

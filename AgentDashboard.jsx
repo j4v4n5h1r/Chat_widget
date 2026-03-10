@@ -171,17 +171,17 @@ function AgentDashboard() {
       setAllSessions(prev => {
         const newSessions = new Map(prev);
         data.sessions.forEach(s => {
-          if (!newSessions.has(s.sessionId)) {
-            newSessions.set(s.sessionId, {
-              messages: [],
-              project: s.project,
-              isOnline: s.isOnline,
-              customerName: s.customerName,
-              customerPhone: s.customerPhone || null,
-              messageCount: s.messageCount || 0,
-              lastActivity: s.lastActivity ? new Date(s.lastActivity).getTime() : 0
-            });
-          }
+          const lastActivity = s.lastActivity ? new Date(s.lastActivity).getTime() : 0;
+          const existing = newSessions.get(s.sessionId);
+          newSessions.set(s.sessionId, {
+            messages: existing?.messages || [],
+            project: s.project,
+            isOnline: s.isOnline,
+            customerName: s.customerName,
+            customerPhone: s.customerPhone || null,
+            messageCount: s.messageCount || 0,
+            lastActivity: lastActivity
+          });
         });
         return newSessions;
       });
@@ -197,14 +197,15 @@ function AgentDashboard() {
             project: data.project,
             isOnline: true,
             customerName: data.customerName,
-            lastActivity: Date.now()
+            lastActivity: 0
           });
         } else {
           const session = newSessions.get(data.sessionId);
-          session.isOnline = true;
-          session.lastActivity = Date.now();
-          if (data.customerName) session.customerName = data.customerName;
-          newSessions.set(data.sessionId, session);
+          newSessions.set(data.sessionId, {
+            ...session,
+            isOnline: true,
+            customerName: data.customerName || session.customerName
+          });
         }
         return newSessions;
       });
@@ -214,43 +215,44 @@ function AgentDashboard() {
     if (data.type === 'new_user_message') {
       setAllSessions(prev => {
         const newSessions = new Map(prev);
-        const session = newSessions.get(data.sessionId) || {
+        const existing = newSessions.get(data.sessionId) || {
           messages: [], project: data.project, isOnline: data.isOnline ?? true, customerInfo: data.customerInfo || null
         };
 
-        session.isOnline = data.isOnline ?? session.isOnline;
-        session.lastActivity = Date.now();
-        if (data.customerInfo && !session.customerInfo) {
-          session.customerInfo = data.customerInfo;
-        }
+        const newMessage = !existing.messages.some(m => m.id === data.messageId)
+          ? {
+              id: data.messageId,
+              text: data.text,
+              sender: 'user',
+              timestamp: new Date(data.timestamp),
+              needsHumanSupport: data.needsHumanSupport,
+              fileUrl: data.fileUrl,
+              fileType: data.fileType,
+              fileName: data.fileName
+            }
+          : null;
 
-        if (!session.messages.some(m => m.id === data.messageId)) {
-          session.messages.push({
-            id: data.messageId,
-            text: data.text,
-            sender: 'user',
-            timestamp: new Date(data.timestamp),
-            needsHumanSupport: data.needsHumanSupport,
-            fileUrl: data.fileUrl,
-            fileType: data.fileType,
-            fileName: data.fileName
-          });
-
-          // Increment unread count if this session is not currently selected
+        if (newMessage) {
           if (selectedSession !== data.sessionId) {
             setUnreadCounts(prev => ({
               ...prev,
               [data.sessionId]: (prev[data.sessionId] || 0) + 1
             }));
           } else {
-            // Auto-scroll to bottom if this is the selected session
             setTimeout(() => {
               messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
           }
         }
 
-        newSessions.set(data.sessionId, session);
+        newSessions.set(data.sessionId, {
+          ...existing,
+          isOnline: data.isOnline ?? existing.isOnline,
+          lastActivity: Date.now(),
+          customerInfo: data.customerInfo && !existing.customerInfo ? data.customerInfo : existing.customerInfo,
+          messages: newMessage ? [...existing.messages, newMessage] : existing.messages
+        });
+
         return newSessions;
       });
     }
@@ -433,10 +435,38 @@ function AgentDashboard() {
       }));
     }
 
-    // Load history if not already loaded
+    // Load history and customer info
     const session = allSessions.get(sessionId);
-    if (!session || session.messages.length === 0) {
-      try {
+    try {
+      // Always fetch customer info (even if messages already loaded)
+      const customerResponse = await fetch(`${API_URL}/api/chat/customer/${sessionId}`);
+      const customerData = await customerResponse.json();
+      if (customerData.success && customerData.customer) {
+        const customer = customerData.customer;
+        setAllSessions(prev => {
+          const newSessions = new Map(prev);
+          const sess = newSessions.get(sessionId);
+          if (sess) {
+            newSessions.set(sessionId, {
+              ...sess,
+              customerInfo: {
+                customerId: customer.customer_id,
+                fullName: customer.full_name,
+                email: customer.email,
+                phone: customer.phone,
+                ipAddress: customer.ip_address,
+                country: customer.country,
+                isVpn: customer.is_vpn,
+                vpnProvider: customer.vpn_provider
+              }
+            });
+          }
+          return newSessions;
+        });
+      }
+
+      // Load message history only if not already loaded
+      if (!session || session.messages.length === 0) {
         const response = await fetch(`${API_URL}/api/contact/user-messages/${sessionId}`);
         const data = await response.json();
         if (data.success && data.messages.length > 0) {
@@ -484,34 +514,9 @@ function AgentDashboard() {
             return newSessions;
           });
         }
-
-        // Also fetch customer info if available
-        const customerResponse = await fetch(`${API_URL}/api/chat/customer/${sessionId}`);
-        const customerData = await customerResponse.json();
-        if (customerData.success && customerData.customer) {
-          const customer = customerData.customer;
-          setAllSessions(prev => {
-            const newSessions = new Map(prev);
-            const sess = newSessions.get(sessionId);
-            if (sess) {
-              newSessions.set(sessionId, {
-                ...sess,
-                customerInfo: {
-                  customerId: customer.customer_id,
-                  fullName: customer.full_name,
-                  email: customer.email,
-                  phone: customer.phone,
-                  ipAddress: customer.ip_address,
-                  country: customer.country
-                }
-              });
-            }
-            return newSessions;
-          });
-        }
-      } catch (error) {
-        console.error('Error loading session history:', error);
       }
+    } catch (error) {
+      console.error('Error loading session data:', error);
     }
 
     // Clear unread count for this session
@@ -1097,7 +1102,7 @@ function AgentDashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium text-sm md:text-base truncate">
-                      {selectedSessionData.customerInfo?.fullName || selectedSession.split('_')[1]?.substring(0, 12) + '...'}
+                      {selectedSessionData.customerInfo?.fullName || selectedSessionData.customerName || selectedSession.split('_')[1]?.substring(0, 12) + '...'}
                     </p>
                     <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                       <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${selectedSessionData.isOnline ? 'bg-green-400' : 'bg-gray-500'}`}></div>
@@ -1109,33 +1114,35 @@ function AgentDashboard() {
                     </div>
                   </div>
                 </div>
-                {selectedSessionData.customerInfo && (
+                {(selectedSessionData.customerInfo || selectedSessionData.customerName || selectedSessionData.customerPhone) && (
                   <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-2 md:px-3 py-1.5 md:py-2 text-[10px] md:text-xs space-y-0.5 md:space-y-1 w-full md:w-auto">
                     <div className="text-gray-400">
-                      <span className="text-gray-500">Name:</span> <span className="text-white">{selectedSessionData.customerInfo.fullName}</span>
+                      <span className="text-gray-500">Name:</span> <span className="text-white">{selectedSessionData.customerInfo?.fullName || selectedSessionData.customerName || '-'}</span>
                     </div>
+                    {(selectedSessionData.customerInfo?.email) && (
                     <div className="text-gray-400">
                       <span className="text-gray-500">Email:</span> {selectedSessionData.customerInfo.email}
                     </div>
+                    )}
                     <div className="text-gray-400">
-                      <span className="text-gray-500">Phone:</span> {selectedSessionData.customerInfo.phone}
+                      <span className="text-gray-500">Phone:</span> {selectedSessionData.customerInfo?.phone || selectedSessionData.customerPhone || '-'}
                     </div>
-                    {selectedSessionData.customerInfo.country && selectedSessionData.customerInfo.country !== 'Unknown' && (
+                    {selectedSessionData.customerInfo?.country && selectedSessionData.customerInfo.country !== 'Unknown' && (
                       <div className="text-gray-400 flex items-center gap-1">
                         <Globe size={12} className="text-blue-400" />
                         <span className="text-gray-500">Location:</span> <span className="text-blue-400">{selectedSessionData.customerInfo.country}</span>
                       </div>
                     )}
-                    {selectedSessionData.customerInfo.ipAddress && selectedSessionData.customerInfo.ipAddress !== 'Unknown' && (
+                    {selectedSessionData.customerInfo?.ipAddress && selectedSessionData.customerInfo.ipAddress !== 'Unknown' && (
                       <div className="text-gray-400">
                         <span className="text-gray-500">IP:</span> <span className="text-green-400 font-mono">{selectedSessionData.customerInfo.ipAddress}</span>
                       </div>
                     )}
-                    {selectedSessionData.customerInfo.isVpn && (
+                    {selectedSessionData.customerInfo?.isVpn && (
                       <div className="bg-red-500/20 border border-red-500/50 rounded px-2 py-1 flex items-center gap-1.5">
                         <ShieldAlert size={14} className="text-red-400 md:w-4 md:h-4" />
                         <span className="text-red-400 font-semibold">VPN/Proxy Detected</span>
-                        {selectedSessionData.customerInfo.vpnProvider && (
+                        {selectedSessionData.customerInfo?.vpnProvider && (
                           <span className="text-red-300 text-[9px] md:text-[10px]">({selectedSessionData.customerInfo.vpnProvider})</span>
                         )}
                       </div>
