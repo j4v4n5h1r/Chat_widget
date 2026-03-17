@@ -1,12 +1,29 @@
-import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, ArrowLeft, User, Mail, Phone, X, AlertTriangle, Check, CheckCheck, Paperclip, Image, Video, File } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import {
+  MessageCircle,
+  Send,
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  X,
+  AlertTriangle,
+  Check,
+  CheckCheck,
+  Paperclip,
+  Image,
+  Video,
+  File,
+} from "lucide-react";
 
 // Configure this for each project
-const PROJECT_NAME = 'WhiteLabel';
-const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5003' : '';
-const WS_URL = window.location.hostname === 'localhost'
-  ? 'ws://localhost:5004'
-  : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}/ws`;
+const PROJECT_NAME = "WhiteLabel";
+const API_URL =
+  window.location.hostname === "localhost" ? "http://localhost:5003" : "";
+const WS_URL =
+  window.location.hostname === "localhost"
+    ? "ws://localhost:5004"
+    : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.hostname}/ws`;
 
 /**
  * Full-Screen Chat Page
@@ -15,18 +32,18 @@ const WS_URL = window.location.hostname === 'localhost'
 function ChatPage({ onBack }) {
   const [messages, setMessages] = useState([
     {
-      id: 'system_welcome',
-      text: 'Hello! How can we help you today?',
-      sender: 'system',
-      timestamp: new Date()
-    }
+      id: "system_welcome",
+      text: "Hello! How can we help you today?",
+      sender: "system",
+      timestamp: new Date(),
+    },
   ]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
-  const [blockReason, setBlockReason] = useState('');
-  const [rateLimitError, setRateLimitError] = useState('');
+  const [blockReason, setBlockReason] = useState("");
+  const [rateLimitError, setRateLimitError] = useState("");
 
   // Device ID for tracking
   const [deviceId, setDeviceId] = useState(null);
@@ -35,15 +52,15 @@ function ChatPage({ onBack }) {
   const [showForm, setShowForm] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    countryCode: '+44' // Default: UK
+    fullName: "",
+    email: "",
+    phone: "",
+    countryCode: "+44", // Default: UK
   });
   const [agentMessageCount, setAgentMessageCount] = useState(0);
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [customerId, setCustomerId] = useState(null);
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState("");
 
   // Flag for marking all messages as read
   const [shouldMarkAllRead, setShouldMarkAllRead] = useState(false);
@@ -65,10 +82,10 @@ function ChatPage({ onBack }) {
 
   // Session management
   const [sessionId] = useState(() => {
-    const stored = localStorage.getItem('chat_session_id');
+    const stored = localStorage.getItem("chat_session_id");
     if (stored) return stored;
     const newId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-    localStorage.setItem('chat_session_id', newId);
+    localStorage.setItem("chat_session_id", newId);
     return newId;
   });
 
@@ -77,17 +94,17 @@ function ChatPage({ onBack }) {
     const getDeviceId = async () => {
       try {
         const response = await fetch(`${API_URL}/api/chat/device`, {
-          credentials: 'include'
+          credentials: "include",
         });
         const data = await response.json();
         if (data.success) {
           setDeviceId(data.deviceId);
           // Also store in localStorage as fallback
-          localStorage.setItem('chat_device_id', data.deviceId);
+          localStorage.setItem("chat_device_id", data.deviceId);
         }
       } catch (error) {
         // Fallback to localStorage
-        const stored = localStorage.getItem('chat_device_id');
+        const stored = localStorage.getItem("chat_device_id");
         if (stored) {
           setDeviceId(stored);
         }
@@ -98,9 +115,9 @@ function ChatPage({ onBack }) {
 
   // Check if form was already submitted
   useEffect(() => {
-    const savedCustomerId = localStorage.getItem('chat_customer_id');
-    const savedFormSubmitted = localStorage.getItem('chat_form_submitted');
-    if (savedCustomerId && savedFormSubmitted === 'true') {
+    const savedCustomerId = localStorage.getItem("chat_customer_id");
+    const savedFormSubmitted = localStorage.getItem("chat_form_submitted");
+    if (savedCustomerId && savedFormSubmitted === "true") {
       setCustomerId(savedCustomerId);
       setFormSubmitted(true);
     }
@@ -110,14 +127,14 @@ function ChatPage({ onBack }) {
   const checkSecurity = async (eventType) => {
     try {
       const response = await fetch(`${API_URL}/api/chat/security-log`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           sessionId,
-          deviceId: deviceId || localStorage.getItem('chat_device_id'),
-          eventType
-        })
+          deviceId: deviceId || localStorage.getItem("chat_device_id"),
+          eventType,
+        }),
       });
 
       const data = await response.json();
@@ -125,19 +142,19 @@ function ChatPage({ onBack }) {
       if (!response.ok) {
         if (response.status === 403) {
           setIsBlocked(true);
-          setBlockReason(data.reason || 'Access denied');
+          setBlockReason(data.reason || "Access denied");
           return false;
         }
         if (response.status === 429) {
           setRateLimitError(data.error);
-          setTimeout(() => setRateLimitError(''), 5000);
+          setTimeout(() => setRateLimitError(""), 5000);
           return false;
         }
       }
 
       return data.success;
     } catch (error) {
-      console.error('Security check error:', error);
+      console.error("Security check error:", error);
       return true; // Allow on error to prevent blocking legitimate users
     }
   };
@@ -153,13 +170,16 @@ function ChatPage({ onBack }) {
   // Kullanıcı yazıyor eventi gönder (throttled)
   const sendTypingEvent = () => {
     const now = Date.now();
-    if (now - lastTypingRef.current > 2000) { // 2 saniyede bir gönder
+    if (now - lastTypingRef.current > 2000) {
+      // 2 saniyede bir gönder
       lastTypingRef.current = now;
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: 'typing',
-          isTyping: true
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "typing",
+            isTyping: true,
+          }),
+        );
       }
     }
   };
@@ -185,22 +205,26 @@ function ChatPage({ onBack }) {
 
     try {
       setIsLoadingHistory(true);
-      const response = await fetch(`${API_URL}/api/contact/user-messages/${sessionId}`);
+      const response = await fetch(
+        `${API_URL}/api/contact/user-messages/${sessionId}`,
+      );
       const data = await response.json();
 
       if (data.success && data.messages.length > 0) {
-        const loadedMessages = [{
-          id: 'system_welcome',
-          text: 'Hello! How can we help you today?',
-          sender: 'system',
-          timestamp: new Date()
-        }];
+        const loadedMessages = [
+          {
+            id: "system_welcome",
+            text: "Hello! How can we help you today?",
+            sender: "system",
+            timestamp: new Date(),
+          },
+        ];
 
         let adminCount = 0;
         let userCount = 0;
         const seenIds = new Set();
 
-        data.messages.forEach(msg => {
+        data.messages.forEach((msg) => {
           // Skip if we've already added this message
           if (seenIds.has(msg.id)) return;
           seenIds.add(msg.id);
@@ -209,14 +233,14 @@ function ChatPage({ onBack }) {
           loadedMessages.push({
             id: msg.id,
             text: msg.text,
-            sender: 'user',
+            sender: "user",
             timestamp: new Date(msg.timestamp),
             fileUrl: msg.fileUrl,
             fileType: msg.fileType,
-            fileName: msg.fileName
+            fileName: msg.fileName,
           });
 
-          msg.replies.forEach(reply => {
+          msg.replies.forEach((reply) => {
             // Use unique ID for replies to avoid collision with message IDs
             const replyId = `reply_${reply.id}`;
             if (seenIds.has(replyId)) return;
@@ -226,12 +250,12 @@ function ChatPage({ onBack }) {
             loadedMessages.push({
               id: replyId,
               text: reply.text,
-              sender: 'system',
+              sender: "system",
               timestamp: new Date(reply.timestamp),
               adminName: reply.admin,
               fileUrl: reply.fileUrl,
               fileType: reply.fileType,
-              fileName: reply.fileName
+              fileName: reply.fileName,
             });
           });
         });
@@ -242,7 +266,7 @@ function ChatPage({ onBack }) {
         historyLoadedRef.current = true;
       }
     } catch (error) {
-      console.error('Error loading message history:', error);
+      console.error("Error loading message history:", error);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -259,52 +283,61 @@ function ChatPage({ onBack }) {
         wsRef.current = new WebSocket(WS_URL);
 
         wsRef.current.onopen = () => {
-          console.log('WebSocket connected');
+          console.log("WebSocket connected");
           setIsConnected(true);
-          wsRef.current.send(JSON.stringify({
-            type: 'register',
-            sessionId: sessionId,
-            clientType: 'user',
-            project: PROJECT_NAME
-          }));
+          wsRef.current.send(
+            JSON.stringify({
+              type: "register",
+              sessionId: sessionId,
+              clientType: "user",
+              project: PROJECT_NAME,
+            }),
+          );
         };
 
         wsRef.current.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
 
-            if (data.type === 'admin_message') {
+            if (data.type === "admin_message") {
               const adminMessage = {
-                id: data.messageId || `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                id:
+                  data.messageId ||
+                  `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
                 text: data.text,
-                sender: 'system',
+                sender: "system",
                 timestamp: new Date(data.timestamp),
                 adminName: data.adminName,
                 fileUrl: data.fileUrl,
                 fileType: data.fileType,
-                fileName: data.fileName
+                fileName: data.fileName,
               };
-              setMessages(prev => {
+              setMessages((prev) => {
                 // Check if message already exists
-                if (prev.some(m => m.id === adminMessage.id)) {
+                if (prev.some((m) => m.id === adminMessage.id)) {
                   return prev;
                 }
                 return [...prev, adminMessage];
               });
-              setAgentMessageCount(prev => prev + 1);
+              setAgentMessageCount((prev) => prev + 1);
               setAdminTyping(false); // Admin mesaj gönderdiğinde typing durur
 
               // Admin mesaj gönderdiğinde tüm mesajları okundu olarak işaretle
-              if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                wsRef.current.send(JSON.stringify({
-                  type: 'mark_all_read',
-                  sessionId: sessionId
-                }));
+              if (
+                wsRef.current &&
+                wsRef.current.readyState === WebSocket.OPEN
+              ) {
+                wsRef.current.send(
+                  JSON.stringify({
+                    type: "mark_all_read",
+                    sessionId: sessionId,
+                  }),
+                );
               }
             }
 
             // Admin typing indicator
-            if (data.type === 'admin_typing') {
+            if (data.type === "admin_typing") {
               setAdminTyping(true);
               // 3 saniye sonra typing'i kaldır
               if (typingTimeoutRef.current) {
@@ -316,44 +349,49 @@ function ChatPage({ onBack }) {
             }
 
             // Admin online durumu
-            if (data.type === 'admin_online') {
+            if (data.type === "admin_online") {
               setAdminOnline(data.online);
             }
 
             // Mesaj durumu güncellemeleri
-            if (data.type === 'message_status_update') {
-              setMessageStatuses(prev => ({
+            if (data.type === "message_status_update") {
+              setMessageStatuses((prev) => ({
                 ...prev,
-                [data.messageId]: data.status
+                [data.messageId]: data.status,
               }));
             }
 
             // Tüm mesajlar okundu
-            if (data.type === 'all_messages_read' || data.type === 'all_messages_read_by_agent') {
+            if (
+              data.type === "all_messages_read" ||
+              data.type === "all_messages_read_by_agent"
+            ) {
               setShouldMarkAllRead(true);
             }
 
             // File deleted by agent
-            if (data.type === 'file_deleted') {
-              console.log('🗑️ File deleted, removing message:', data.messageId);
-              setMessages(prev => prev.filter(m => m.id !== data.messageId));
+            if (data.type === "file_deleted") {
+              console.log("🗑️ File deleted, removing message:", data.messageId);
+              setMessages((prev) =>
+                prev.filter((m) => m.id !== data.messageId),
+              );
             }
           } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
+            console.error("Error parsing WebSocket message:", error);
           }
         };
 
         wsRef.current.onclose = () => {
-          console.log('WebSocket disconnected');
+          console.log("WebSocket disconnected");
           setIsConnected(false);
           setTimeout(connectWebSocket, 3000);
         };
 
         wsRef.current.onerror = (error) => {
-          console.error('WebSocket error:', error);
+          console.error("WebSocket error:", error);
         };
       } catch (error) {
-        console.error('WebSocket connection failed:', error);
+        console.error("WebSocket connection failed:", error);
         setTimeout(connectWebSocket, 3000);
       }
     };
@@ -370,12 +408,12 @@ function ChatPage({ onBack }) {
   // Mark all user messages as read when flag is set
   useEffect(() => {
     if (shouldMarkAllRead) {
-      setMessageStatuses(prev => {
+      setMessageStatuses((prev) => {
         const updated = { ...prev };
         // Mark all user messages as read
-        messages.forEach(msg => {
-          if (msg.sender === 'user') {
-            updated[msg.id] = 'read';
+        messages.forEach((msg) => {
+          if (msg.sender === "user") {
+            updated[msg.id] = "read";
           }
         });
         return updated;
@@ -390,24 +428,24 @@ function ChatPage({ onBack }) {
 
     setIsUploading(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
       const response = await fetch(`${API_URL}/api/upload`, {
-        method: 'POST',
-        body: formData
+        method: "POST",
+        body: formData,
       });
 
       const result = await response.json();
       if (result.success) {
         return result.file;
       } else {
-        alert('File upload failed: ' + result.error);
+        alert("File upload failed: " + result.error);
         return null;
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('File upload failed');
+      console.error("Upload error:", error);
+      alert("File upload failed");
       return null;
     } finally {
       setIsUploading(false);
@@ -417,52 +455,60 @@ function ChatPage({ onBack }) {
   // Handle file selection
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    console.log(`📎 Selected ${files.length} file(s):`, files.map(f => f.name));
+    console.log(
+      `📎 Selected ${files.length} file(s):`,
+      files.map((f) => f.name),
+    );
     if (files.length > 0) {
       // Add to existing files instead of replacing
-      setSelectedFiles(prev => {
+      setSelectedFiles((prev) => {
         const updated = [...prev, ...files];
-        console.log(`📦 Total files now: ${updated.length}`, updated.map(f => f.name));
+        console.log(
+          `📦 Total files now: ${updated.length}`,
+          updated.map((f) => f.name),
+        );
         return updated;
       });
     }
     // Reset input to allow selecting same file again
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   // Remove file from selection
   const removeFile = (index) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Delete uploaded file from server and messages
   const deleteFile = async (msg) => {
     try {
       // Extract filename from URL
-      const filename = msg.fileUrl.split('/').pop();
+      const filename = msg.fileUrl.split("/").pop();
 
       // Delete from server
       await fetch(`${API_URL}/api/upload/${filename}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       // Remove from messages
-      setMessages(prev => prev.filter(m => m.id !== msg.id));
+      setMessages((prev) => prev.filter((m) => m.id !== msg.id));
 
       // Notify agent via WebSocket that file was deleted
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: 'file_deleted',
-          sessionId: sessionId,
-          messageId: msg.id
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "file_deleted",
+            sessionId: sessionId,
+            messageId: msg.id,
+          }),
+        );
       }
     } catch (error) {
-      console.error('Error deleting file:', error);
+      console.error("Error deleting file:", error);
       // Still remove from UI even if server delete fails
-      setMessages(prev => prev.filter(m => m.id !== msg.id));
+      setMessages((prev) => prev.filter((m) => m.id !== msg.id));
     }
   };
 
@@ -471,7 +517,7 @@ function ChatPage({ onBack }) {
     if (selectedFiles.length === 0) return;
 
     // Check security/rate limit before uploading
-    const allowed = await checkSecurity('message');
+    const allowed = await checkSecurity("message");
     if (!allowed) {
       setSelectedFiles([]);
       return;
@@ -486,11 +532,11 @@ function ChatPage({ onBack }) {
       const uploadedFiles = [];
       for (const file of filesToSend) {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append("file", file);
 
         const response = await fetch(`${API_URL}/api/upload`, {
-          method: 'POST',
-          body: formData
+          method: "POST",
+          body: formData,
         });
 
         const result = await response.json();
@@ -502,18 +548,18 @@ function ChatPage({ onBack }) {
       // Send each file as separate message
       for (const file of uploadedFiles) {
         const response = await fetch(`${API_URL}/api/contact`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: sessionId,
             email: `${sessionId}@chat.local`,
-            message: '',
+            message: "",
             project: PROJECT_NAME,
             deviceId: deviceId,
             fileUrl: file.url,
             fileType: file.type,
-            fileName: file.originalName
-          })
+            fileName: file.originalName,
+          }),
         });
 
         const result = await response.json();
@@ -523,43 +569,45 @@ function ChatPage({ onBack }) {
 
           const newMessage = {
             id: realMessageId,
-            text: '',
-            sender: 'user',
+            text: "",
+            sender: "user",
             timestamp: new Date(),
             fileUrl: file.url,
             fileType: file.type,
-            fileName: file.originalName
+            fileName: file.originalName,
           };
 
-          setMessages(prev => {
-            if (prev.some(m => m.id === realMessageId)) {
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === realMessageId)) {
               return prev;
             }
             return [...prev, newMessage];
           });
-          setUserMessageCount(prev => prev + 1);
+          setUserMessageCount((prev) => prev + 1);
 
-          setMessageStatuses(prev => ({
+          setMessageStatuses((prev) => ({
             ...prev,
-            [realMessageId]: 'sent'
+            [realMessageId]: "sent",
           }));
 
           if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({
-              type: 'user_message',
-              text: '',
-              messageId: realMessageId,
-              sessionId: sessionId,
-              project: PROJECT_NAME,
-              fileUrl: file.url,
-              fileType: file.type,
-              fileName: file.originalName
-            }));
+            wsRef.current.send(
+              JSON.stringify({
+                type: "user_message",
+                text: "",
+                messageId: realMessageId,
+                sessionId: sessionId,
+                project: PROJECT_NAME,
+                fileUrl: file.url,
+                fileType: file.type,
+                fileName: file.originalName,
+              }),
+            );
           }
         }
       }
     } catch (error) {
-      console.error('Error sending files:', error);
+      console.error("Error sending files:", error);
     } finally {
       setIsUploading(false);
     }
@@ -572,24 +620,24 @@ function ChatPage({ onBack }) {
     if (showForm && !formSubmitted) return;
 
     // Check rate limit before sending
-    const allowed = await checkSecurity('message');
+    const allowed = await checkSecurity("message");
     if (!allowed) return;
 
     const messageText = inputMessage;
-    setInputMessage('');
+    setInputMessage("");
 
     try {
       const response = await fetch(`${API_URL}/api/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           name: sessionId,
           email: `${sessionId}@chat.local`,
           message: messageText,
           project: PROJECT_NAME,
-          deviceId: deviceId
-        })
+          deviceId: deviceId,
+        }),
       });
 
       const result = await response.json();
@@ -600,53 +648,59 @@ function ChatPage({ onBack }) {
         const newMessage = {
           id: realMessageId,
           text: messageText,
-          sender: 'user',
-          timestamp: new Date()
+          sender: "user",
+          timestamp: new Date(),
         };
-        setMessages(prev => {
+        setMessages((prev) => {
           // Check if message already exists to prevent duplicates
-          if (prev.some(m => m.id === realMessageId)) {
+          if (prev.some((m) => m.id === realMessageId)) {
             return prev;
           }
           return [...prev, newMessage];
         });
-        setUserMessageCount(prev => prev + 1);
+        setUserMessageCount((prev) => prev + 1);
 
         // Mesaj durumunu 'sent' olarak ayarla (1 tik)
-        setMessageStatuses(prev => ({
+        setMessageStatuses((prev) => ({
           ...prev,
-          [realMessageId]: 'sent'
+          [realMessageId]: "sent",
         }));
 
         // Send via WebSocket if connected, otherwise try to reconnect
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
-            type: 'user_message',
-            text: messageText,
-            messageId: realMessageId,
-            sessionId: sessionId,
-            project: PROJECT_NAME
-          }));
+          wsRef.current.send(
+            JSON.stringify({
+              type: "user_message",
+              text: messageText,
+              messageId: realMessageId,
+              sessionId: sessionId,
+              project: PROJECT_NAME,
+            }),
+          );
         } else {
-          console.warn('⚠️ WebSocket not connected, attempting to reconnect...');
+          console.warn(
+            "⚠️ WebSocket not connected, attempting to reconnect...",
+          );
           // Try to reconnect and send
           connectWebSocket();
           // Queue message to send after reconnection
           setTimeout(() => {
             if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-              wsRef.current.send(JSON.stringify({
-                type: 'user_message',
-                text: messageText,
-                messageId: realMessageId,
-                sessionId: sessionId,
-                project: PROJECT_NAME
-              }));
+              wsRef.current.send(
+                JSON.stringify({
+                  type: "user_message",
+                  text: messageText,
+                  messageId: realMessageId,
+                  sessionId: sessionId,
+                  project: PROJECT_NAME,
+                }),
+              );
             }
           }, 1000);
         }
       }
     } catch (error) {
-      console.error('Error saving message:', error);
+      console.error("Error saving message:", error);
     }
   };
 
@@ -656,77 +710,82 @@ function ChatPage({ onBack }) {
 
     try {
       // Get real IP and country from client side
-      let clientIp = 'Unknown';
-      let clientCountry = 'Unknown';
+      let clientIp = "Unknown";
+      let clientCountry = "Unknown";
 
       try {
-        const ipResponse = await fetch('https://ipapi.co/json/');
+        const ipResponse = await fetch("https://ipapi.co/json/");
         const ipData = await ipResponse.json();
-        clientIp = ipData.ip || 'Unknown';
-        clientCountry = ipData.country_name || 'Unknown';
+        clientIp = ipData.ip || "Unknown";
+        clientCountry = ipData.country_name || "Unknown";
       } catch (ipError) {
-        console.log('Could not fetch IP info:', ipError);
+        console.log("Could not fetch IP info:", ipError);
       }
 
       const response = await fetch(`${API_URL}/api/chat/customer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId: sessionId,
           fullName: customerInfo.fullName,
           email: customerInfo.email,
           phone: `${customerInfo.countryCode}${customerInfo.phone}`, // Combine country code + phone
           clientIp: clientIp,
-          clientCountry: clientCountry
-        })
+          clientCountry: clientCountry,
+        }),
       });
 
       const result = await response.json();
 
       if (!result.success) {
-        setFormError(result.error || 'Failed to save. Please try again.');
+        setFormError(result.error || "Failed to save. Please try again.");
         return;
       }
 
       if (result.success) {
-        setFormError('');
+        setFormError("");
         setCustomerId(result.customerId);
         setFormSubmitted(true);
         setShowForm(false);
-        localStorage.setItem('chat_customer_id', result.customerId);
-        localStorage.setItem('chat_form_submitted', 'true');
+        localStorage.setItem("chat_customer_id", result.customerId);
+        localStorage.setItem("chat_form_submitted", "true");
 
         // Notify backend via WebSocket about customer info
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
-            type: 'customer_info_submitted',
-            sessionId: sessionId,
-            customerInfo: {
-              customerId: result.customerId,
-              fullName: customerInfo.fullName,
-              email: customerInfo.email,
-              phone: `${customerInfo.countryCode}${customerInfo.phone}`,
-              ipAddress: clientIp,
-              country: clientCountry
-            }
-          }));
+          wsRef.current.send(
+            JSON.stringify({
+              type: "customer_info_submitted",
+              sessionId: sessionId,
+              customerInfo: {
+                customerId: result.customerId,
+                fullName: customerInfo.fullName,
+                email: customerInfo.email,
+                phone: `${customerInfo.countryCode}${customerInfo.phone}`,
+                ipAddress: clientIp,
+                country: clientCountry,
+              },
+            }),
+          );
         }
 
         // Add system message about form submission
-        setMessages(prev => [...prev, {
-          id: `system_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-          text: `Thank you ${customerInfo.fullName}! Your information has been saved. An agent will assist you shortly.`,
-          sender: 'system',
-          timestamp: new Date()
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `system_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            text: `Thank you ${customerInfo.fullName}! Your information has been saved. An agent will assist you shortly.`,
+            sender: "system",
+            timestamp: new Date(),
+          },
+        ]);
       }
     } catch (error) {
-      console.error('Error submitting customer form:', error);
+      console.error("Error submitting customer form:", error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#1a0a12] flex flex-col">
+    <div className="min-h-screen gradient-bg flex flex-col">
       {/* Header - Fixed at top */}
       <header className="sticky top-0 z-50 bg-[#300A24] p-3 md:p-4 shadow-lg border-b border-[#E95420]/30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -744,17 +803,24 @@ function ChatPage({ onBack }) {
                 <MessageCircle size={20} className="text-white md:w-7 md:h-7" />
               </div>
               <div>
-                <h1 className="text-white font-bold text-base md:text-xl">Customer Support</h1>
+                <h1 className="text-white font-bold text-base md:text-xl">
+                  Customer Support
+                </h1>
                 <div className="flex items-center gap-1.5 md:gap-2">
-                  <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${adminOnline ? 'bg-green-400 animate-pulse' : isConnected ? 'bg-yellow-400' : 'bg-gray-400'}`}></div>
+                  <div
+                    className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${adminOnline ? "bg-green-400 animate-pulse" : isConnected ? "bg-yellow-400" : "bg-gray-400"}`}
+                  ></div>
                   <p className="text-white/80 text-xs md:text-sm">
-                    {adminOnline ? 'Agent Online' : isConnected ? 'Waiting for agent...' : 'Connecting...'}
+                    {adminOnline
+                      ? "Agent Online"
+                      : isConnected
+                        ? "Waiting for agent..."
+                        : "Connecting..."}
                   </p>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
       </header>
 
@@ -772,109 +838,128 @@ function ChatPage({ onBack }) {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[90%] md:max-w-[85%] lg:max-w-[70%] rounded-xl md:rounded-2xl px-3 py-2 md:px-5 md:py-3 ${
-                  msg.sender === 'user'
-                    ? 'bg-[#E95420] text-white'
-                    : 'bg-[#2C001E]/90 text-gray-200 border border-[#E95420]/20'
+                className={`max-w-[90%] md:max-w-[85%] lg:max-w-[70%] rounded-2xl md:rounded-[2rem] px-3 py-2 md:px-5 md:py-3 ${
+                  msg.sender === "user"
+                    ? "bg-[#E95420] text-white"
+                    : "bg-[#2C001E]/90 text-gray-200 border border-[#E95420]/20"
                 }`}
               >
                 {msg.adminName && (
-                  <span className="text-[10px] md:text-xs text-[#E95420] block mb-1 font-medium">{msg.adminName}</span>
+                  <span className="text-[10px] md:text-xs text-[#E95420] block mb-1 font-medium">
+                    {msg.adminName}
+                  </span>
                 )}
 
                 {/* File attachment */}
-                {msg.fileUrl && (() => {
-                  // Auto-detect file type if not set
-                  let fileType = msg.fileType;
-                  if (!fileType && msg.fileUrl) {
-                    const ext = msg.fileUrl.split('.').pop().toLowerCase();
-                    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-                      fileType = 'image';
-                    } else if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
-                      fileType = 'video';
-                    } else {
-                      fileType = 'application';
+                {msg.fileUrl &&
+                  (() => {
+                    // Auto-detect file type if not set
+                    let fileType = msg.fileType;
+                    if (!fileType && msg.fileUrl) {
+                      const ext = msg.fileUrl.split(".").pop().toLowerCase();
+                      if (
+                        ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(
+                          ext,
+                        )
+                      ) {
+                        fileType = "image";
+                      } else if (["mp4", "webm", "ogg", "mov"].includes(ext)) {
+                        fileType = "video";
+                      } else {
+                        fileType = "application";
+                      }
                     }
-                  }
 
-                  return (
-                  <div className="mb-2 relative group">
-                    {fileType === 'image' && (
-                      <div className="relative">
-                        <img
-                          src={msg.fileUrl}
-                          alt={msg.fileName}
-                          className="max-w-full rounded-lg max-h-48 md:max-h-64 object-cover cursor-pointer hover:opacity-90 transition"
-                          onClick={() => setSelectedImage(msg.fileUrl)}
-                        />
-                        {msg.sender === 'user' && (
-                          <button
-                            onClick={() => deleteFile(msg)}
-                            className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Delete"
-                          >
-                            <X size={14} />
-                          </button>
+                    return (
+                      <div className="mb-2 relative group">
+                        {fileType === "image" && (
+                          <div className="relative">
+                            <img
+                              src={msg.fileUrl}
+                              alt={msg.fileName}
+                              className="max-w-full rounded-lg max-h-48 md:max-h-64 object-cover cursor-pointer hover:opacity-90 transition"
+                              onClick={() => setSelectedImage(msg.fileUrl)}
+                            />
+                            {msg.sender === "user" && (
+                              <button
+                                onClick={() => deleteFile(msg)}
+                                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Delete"
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {fileType === "video" && (
+                          <div className="relative">
+                            <video
+                              controls
+                              className="max-w-full rounded-lg max-h-64"
+                            >
+                              <source src={msg.fileUrl} />
+                            </video>
+                            {msg.sender === "user" && (
+                              <button
+                                onClick={() => deleteFile(msg)}
+                                className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Delete"
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        {fileType === "application" && (
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={msg.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm underline"
+                            >
+                              <File size={16} />
+                              {msg.fileName}
+                            </a>
+                            {msg.sender === "user" && (
+                              <button
+                                onClick={() => deleteFile(msg)}
+                                className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
+                                title="Delete"
+                              >
+                                <X size={12} />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
-                    {fileType === 'video' && (
-                      <div className="relative">
-                        <video controls className="max-w-full rounded-lg max-h-64">
-                          <source src={msg.fileUrl} />
-                        </video>
-                        {msg.sender === 'user' && (
-                          <button
-                            onClick={() => deleteFile(msg)}
-                            className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Delete"
-                          >
-                            <X size={14} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    {fileType === 'application' && (
-                      <div className="flex items-center gap-2">
-                        <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm underline">
-                          <File size={16} />
-                          {msg.fileName}
-                        </a>
-                        {msg.sender === 'user' && (
-                          <button
-                            onClick={() => deleteFile(msg)}
-                            className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
-                            title="Delete"
-                          >
-                            <X size={12} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  );
-                })()}
+                    );
+                  })()}
 
                 {/* Only show text if it's not empty and not a file placeholder */}
-                {msg.text && msg.text.trim() !== '' && !msg.text.startsWith('[File:') && (
-                  <p className="text-sm md:text-base leading-relaxed">{msg.text}</p>
-                )}
+                {msg.text &&
+                  msg.text.trim() !== "" &&
+                  !msg.text.startsWith("[File:") && (
+                    <p className="text-sm md:text-base leading-relaxed">
+                      {msg.text}
+                    </p>
+                  )}
                 <div className="flex items-center justify-end gap-1 mt-1 md:mt-2">
                   <span className="text-[10px] md:text-xs opacity-60">
-                    {msg.timestamp.toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit'
+                    {msg.timestamp.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
                     })}
                   </span>
                   {/* WhatsApp tarzı tik ikonları - sadece kullanıcı mesajları için */}
-                  {msg.sender === 'user' && (
+                  {msg.sender === "user" && (
                     <span className="ml-1">
-                      {messageStatuses[msg.id] === 'read' ? (
+                      {messageStatuses[msg.id] === "read" ? (
                         <CheckCheck size={16} className="text-green-400" />
-                      ) : messageStatuses[msg.id] === 'delivered' ? (
+                      ) : messageStatuses[msg.id] === "delivered" ? (
                         <CheckCheck size={16} className="text-white/60" />
                       ) : (
                         <Check size={16} className="text-white/60" />
@@ -892,9 +977,18 @@ function ChatPage({ onBack }) {
               <div className="bg-gray-800/80 text-gray-400 border border-gray-700 rounded-2xl px-5 py-3">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                    <span className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                    <span className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <span
+                      className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce"
+                      style={{ animationDelay: "0ms" }}
+                    ></span>
+                    <span
+                      className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce"
+                      style={{ animationDelay: "150ms" }}
+                    ></span>
+                    <span
+                      className="w-2 h-2 bg-[#E95420] rounded-full animate-bounce"
+                      style={{ animationDelay: "300ms" }}
+                    ></span>
                   </div>
                   <span className="text-sm">typing...</span>
                 </div>
@@ -908,51 +1002,84 @@ function ChatPage({ onBack }) {
         {/* Customer Form Modal */}
         {showForm && !formSubmitted && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-50">
-            <div className="bg-gray-900 border border-[#E95420]/30 rounded-xl md:rounded-2xl p-4 md:p-6 w-full max-w-md shadow-2xl">
+            <div className="bg-gray-900 border border-[#E95420]/30 rounded-xl md:rounded-3xl p-4 md:p-6 w-full max-w-md shadow-2xl">
               <div className="mb-4 md:mb-6">
-                <h3 className="text-lg md:text-xl font-bold text-white">Please introduce yourself</h3>
-                <p className="text-gray-400 text-xs mt-1">Please fill in the form to continue chatting</p>
+                <h3 className="text-lg md:text-xl font-bold text-white">
+                  Please introduce yourself
+                </h3>
+                <p className="text-gray-400 text-xs mt-1">
+                  Please fill in the form to continue chatting
+                </p>
               </div>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">Full Name *</label>
+                  <label className="text-gray-400 text-sm mb-1 block">
+                    Full Name *
+                  </label>
                   <div className="relative">
-                    <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <User
+                      size={18}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    />
                     <input
                       type="text"
                       required
                       value={customerInfo.fullName}
-                      onChange={(e) => { setFormError(''); setCustomerInfo(prev => ({ ...prev, fullName: e.target.value })); }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                      onChange={(e) => {
+                        setFormError("");
+                        setCustomerInfo((prev) => ({
+                          ...prev,
+                          fullName: e.target.value,
+                        }));
+                      }}
+                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="John Doe"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">Email *</label>
+                  <label className="text-gray-400 text-sm mb-1 block">
+                    Email *
+                  </label>
                   <div className="relative">
-                    <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <Mail
+                      size={18}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    />
                     <input
                       type="email"
                       required
                       value={customerInfo.email}
-                      onChange={(e) => { setFormError(''); setCustomerInfo(prev => ({ ...prev, email: e.target.value })); }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                      onChange={(e) => {
+                        setFormError("");
+                        setCustomerInfo((prev) => ({
+                          ...prev,
+                          email: e.target.value,
+                        }));
+                      }}
+                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="john@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">Phone Number *</label>
+                  <label className="text-gray-400 text-sm mb-1 block">
+                    Phone Number *
+                  </label>
                   <div className="flex gap-2">
                     {/* Country Code Dropdown */}
                     <select
                       value={customerInfo.countryCode}
-                      onChange={(e) => setCustomerInfo(prev => ({ ...prev, countryCode: e.target.value }))}
-                      className="bg-gray-800 border border-gray-700 text-white px-3 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420] w-28"
+                      onChange={(e) =>
+                        setCustomerInfo((prev) => ({
+                          ...prev,
+                          countryCode: e.target.value,
+                        }))
+                      }
+                      className="bg-gray-800 border border-gray-700 text-white px-3 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420] w-28"
                     >
                       <option value="+44">🇬🇧 +44</option>
                       <option value="+353">🇮🇪 +353</option>
@@ -960,20 +1087,28 @@ function ChatPage({ onBack }) {
 
                     {/* Phone Number Input */}
                     <div className="relative flex-1">
-                      <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                      <Phone
+                        size={18}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      />
                       <input
                         type="tel"
                         required
                         value={customerInfo.phone}
                         onChange={(e) => {
                           // Only allow digits and limit to 10 digits
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                          setCustomerInfo(prev => ({ ...prev, phone: value }));
+                          const value = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 10);
+                          setCustomerInfo((prev) => ({
+                            ...prev,
+                            phone: value,
+                          }));
                         }}
                         pattern="[0-9]{10}"
                         minLength="10"
                         maxLength="10"
-                        className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                        className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                         placeholder="1234567890"
                       />
                     </div>
@@ -988,7 +1123,7 @@ function ChatPage({ onBack }) {
 
                 <button
                   type="submit"
-                  className="w-full bg-[#E95420] hover:bg-[#d44516] text-white font-bold py-3 rounded-xl transition-all transform hover:scale-[1.02]"
+                  className="w-full bg-[#E95420] hover:bg-[#d44516] text-white font-bold py-3 rounded-3xl transition-all transform hover:scale-[1.02]"
                 >
                   Continue Chat
                 </button>
@@ -1022,20 +1157,30 @@ function ChatPage({ onBack }) {
         )}
 
         {/* Message Input - Sticky at bottom */}
-        <form onSubmit={handleSendMessage} className="sticky bottom-0 p-3 md:p-6 border-t border-gray-800 bg-gray-900/95 backdrop-blur-sm">
+        <form
+          onSubmit={handleSendMessage}
+          className="sticky bottom-0 p-3 md:p-6 border-t border-gray-800 bg-gray-900/95 backdrop-blur-sm rounded-[2rem]"
+        >
           {/* Selected files preview */}
           {selectedFiles.length > 0 && (
             <div className="mb-2 md:mb-3 flex flex-wrap gap-1.5 md:gap-2">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-lg p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2">
-                  {file.type.startsWith('image/') ? (
+                <div
+                  key={index}
+                  className="bg-gray-800/50 border border-gray-700 rounded-3xl p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2"
+                >
+                  {file.type.startsWith("image/") ? (
                     <Image size={14} className="text-[#E95420] md:w-4 md:h-4" />
-                  ) : file.type.startsWith('video/') ? (
+                  ) : file.type.startsWith("video/") ? (
                     <Video size={14} className="text-[#E95420] md:w-4 md:h-4" />
                   ) : (
                     <File size={14} className="text-[#E95420] md:w-4 md:h-4" />
                   )}
-                  <span className="text-white text-[10px] md:text-xs">{file.name.length > 12 ? file.name.substring(0, 12) + '...' : file.name}</span>
+                  <span className="text-white text-[10px] md:text-xs">
+                    {file.name.length > 12
+                      ? file.name.substring(0, 12) + "..."
+                      : file.name}
+                  </span>
                   <button
                     type="button"
                     onClick={() => removeFile(index)}
@@ -1049,7 +1194,7 @@ function ChatPage({ onBack }) {
                 type="button"
                 onClick={uploadAndSendFiles}
                 disabled={isUploading}
-                className="bg-[#E95420] hover:bg-[#d44516] disabled:opacity-50 disabled:cursor-not-allowed text-white px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-semibold flex items-center gap-1"
+                className="bg-[#E95420] hover:bg-[#d44516] disabled:opacity-50 disabled:cursor-not-allowed text-white px-2 md:px-4 py-1.5 md:py-2 rounded-2xl text-[10px] md:text-xs font-semibold flex items-center gap-1"
               >
                 {isUploading ? (
                   <>
@@ -1082,7 +1227,7 @@ function ChatPage({ onBack }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isBlocked || isUploading}
-              className="bg-gray-800/50 border border-gray-700 text-[#E95420] px-3 py-3 md:px-4 md:py-4 rounded-lg md:rounded-xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#E95420] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-gray-800/50 border border-gray-700 text-[#E95420] px-3 py-3 md:px-4 md:py-4 rounded-lg md:rounded-3xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#E95420] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               title="Attach file"
             >
               {isUploading ? (
@@ -1100,14 +1245,14 @@ function ChatPage({ onBack }) {
                 sendTypingEvent();
               }}
               disabled={isBlocked}
-              className="flex-1 bg-gray-800/50 border border-gray-700 text-white px-3 py-3 md:px-5 md:py-4 rounded-lg md:rounded-xl focus:outline-none focus:ring-2 focus:ring-[#E95420] placeholder-gray-500 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gray-800/50 border border-gray-700 text-white px-3 py-3 md:px-5 md:py-4 rounded-lg md:rounded-[3rem] focus:outline-none focus:ring-2 focus:ring-[#E95420] placeholder-gray-500 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder={isBlocked ? "Chat disabled" : "Type your message..."}
               autoFocus
             />
             <button
               type="submit"
               disabled={!inputMessage.trim() || isBlocked}
-              className="bg-[#E95420] hover:bg-[#d44516] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 md:px-6 md:py-4 rounded-lg md:rounded-xl transition-all transform hover:scale-105"
+              className="bg-[#E95420] hover:bg-[#d44516] disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 md:px-6 md:py-4 rounded-xl md:rounded-[3rem] transition-all transform hover:scale-105"
             >
               <Send size={18} className="md:w-5 md:h-5" />
             </button>

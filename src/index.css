@@ -5,14 +5,38 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family:
+    source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.gradient-bg {
+  background:
+    url("public/water-marker_1.png") center center no-repeat,
+    linear-gradient(
+      90deg,
+      rgba(42, 10, 12, 1) 0%,
+      rgba(199, 87, 171, 1) 50%,
+      rgba(237, 83, 88, 1) 100%
+    );
+  background-size:
+    28vw auto,
+    cover;
+  background-blend-mode: overlay;
+}
+
+.gradient-bg-rest {
+  background: linear-gradient(
+    90deg,
+    rgba(42, 10, 12, 1) 0%,
+    rgba(199, 87, 171, 1) 50%,
+    rgba(237, 83, 88, 1) 100%
+  );
 }
