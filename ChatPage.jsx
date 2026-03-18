@@ -1005,17 +1005,17 @@ function ChatPage({ onBack }) {
             <div className="bg-gray-900 border border-[#E95420]/30 rounded-xl md:rounded-3xl p-4 md:p-6 w-full max-w-md shadow-2xl">
               <div className="mb-4 md:mb-6">
                 <h3 className="text-lg md:text-xl font-bold text-white">
-                  Please introduce yourself
+                  Introduce Yourself
                 </h3>
                 <p className="text-gray-400 text-xs mt-1">
-                  Please fill in the form to continue chatting
+                  Please fill in your details below to continue the chat
                 </p>
               </div>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
                   <label className="text-gray-400 text-sm mb-1 block">
-                    Full Name *
+                    First Name *
                   </label>
                   <div className="relative">
                     <User
@@ -1034,7 +1034,32 @@ function ChatPage({ onBack }) {
                         }));
                       }}
                       className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
-                      placeholder="John Doe"
+                      placeholder="John"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">
+                    Last Name *
+                  </label>
+                  <div className="relative">
+                    <User
+                      size={18}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={customerInfo.fullName}
+                      onChange={(e) => {
+                        setFormError("");
+                        setCustomerInfo((prev) => ({
+                          ...prev,
+                          fullName: e.target.value,
+                        }));
+                      }}
+                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                      placeholder="Doe"
                     />
                   </div>
                 </div>
