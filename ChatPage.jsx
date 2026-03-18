@@ -974,7 +974,7 @@ function ChatPage({ onBack }) {
           {/* Typing indicator - Admin yazıyor */}
           {adminTyping && (
             <div className="flex justify-start">
-              <div className="bg-gray-800/80 text-gray-400 border border-gray-700 rounded-2xl px-5 py-3">
+              <div className="bg-gray-800/80 text-gray-400 border border-[#E95420]/30 rounded-2xl px-5 py-3">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">
                     <span
@@ -1002,25 +1002,25 @@ function ChatPage({ onBack }) {
         {/* Customer Form Modal */}
         {showForm && !formSubmitted && (
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 md:p-4 z-50">
-            <div className="bg-gray-900 border border-[#E95420]/30 rounded-xl md:rounded-3xl p-4 md:p-6 w-full max-w-md shadow-2xl">
+            <div className="bg-[#300A24] border border-[#E95420]/30 rounded-xl md:rounded-3xl p-4 md:p-6 w-full max-w-md shadow-2xl">
               <div className="mb-4 md:mb-6">
                 <h3 className="text-lg md:text-xl font-bold text-white">
                   Introduce Yourself
                 </h3>
-                <p className="text-gray-400 text-xs mt-1">
+                <p className="text-white text-xs mt-1">
                   Please fill in your details below to continue the chat
                 </p>
               </div>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">
+                  <label className="text-white text-sm mb-1 block">
                     First Name *
                   </label>
                   <div className="relative">
                     <User
                       size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
                     />
                     <input
                       type="text"
@@ -1033,19 +1033,19 @@ function ChatPage({ onBack }) {
                           fullName: e.target.value,
                         }));
                       }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                      className="w-full bg-white/10 border border-[#E95420]/30 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="John"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">
+                  <label className="text-white text-sm mb-1 block">
                     Last Name *
                   </label>
                   <div className="relative">
                     <User
                       size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
                     />
                     <input
                       type="text"
@@ -1058,20 +1058,20 @@ function ChatPage({ onBack }) {
                           fullName: e.target.value,
                         }));
                       }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                      className="w-full bg-white/10 border border-[#E95420]/30 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="Doe"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">
+                  <label className="text-white text-sm mb-1 block">
                     Email *
                   </label>
                   <div className="relative">
                     <Mail
                       size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
                     />
                     <input
                       type="email"
@@ -1084,14 +1084,14 @@ function ChatPage({ onBack }) {
                           email: e.target.value,
                         }));
                       }}
-                      className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                      className="w-full bg-white/10 border border-[#E95420]/30 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                       placeholder="john@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-gray-400 text-sm mb-1 block">
+                  <label className="text-white text-sm mb-1 block">
                     Phone Number *
                   </label>
                   <div className="flex gap-2">
@@ -1104,7 +1104,7 @@ function ChatPage({ onBack }) {
                           countryCode: e.target.value,
                         }))
                       }
-                      className="bg-gray-800 border border-gray-700 text-white px-3 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420] w-28"
+                      className="bg-white/10 border border-[#E95420]/30 text-white px-3 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420] w-28"
                     >
                       <option value="+44">🇬🇧 +44</option>
                       <option value="+353">🇮🇪 +353</option>
@@ -1114,7 +1114,7 @@ function ChatPage({ onBack }) {
                     <div className="relative flex-1">
                       <Phone
                         size={18}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-white"
                       />
                       <input
                         type="tel"
@@ -1133,7 +1133,7 @@ function ChatPage({ onBack }) {
                         pattern="[0-9]{10}"
                         minLength="10"
                         maxLength="10"
-                        className="w-full bg-gray-800 border border-gray-700 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
+                        className="w-full bg-white/10 border border-[#E95420]/30 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
                         placeholder="1234567890"
                       />
                     </div>
@@ -1153,7 +1153,7 @@ function ChatPage({ onBack }) {
                   Continue Chat
                 </button>
 
-                <p className="text-gray-500 text-xs text-center">
+                <p className="text-white text-xs text-center">
                   Your information helps us serve you better
                 </p>
               </form>
@@ -1192,7 +1192,7 @@ function ChatPage({ onBack }) {
               {selectedFiles.map((file, index) => (
                 <div
                   key={index}
-                  className="bg-gray-800/50 border border-gray-700 rounded-3xl p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2"
+                  className="bg-white/10/50 border border-gray-700 rounded-3xl p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2"
                 >
                   {file.type.startsWith("image/") ? (
                     <Image size={14} className="text-[#E95420] md:w-4 md:h-4" />
@@ -1252,7 +1252,7 @@ function ChatPage({ onBack }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isBlocked || isUploading}
-              className="bg-gray-800/50 border border-gray-700 text-[#E95420] px-3 py-3 md:px-4 md:py-4 rounded-lg md:rounded-3xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#E95420] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="bg-white/10/50 border border-[#E95420]/30 text-[#E95420] px-3 py-3 md:px-4 md:py-4 rounded-lg md:rounded-3xl hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#E95420] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               title="Attach file"
             >
               {isUploading ? (
@@ -1270,7 +1270,7 @@ function ChatPage({ onBack }) {
                 sendTypingEvent();
               }}
               disabled={isBlocked}
-              className="flex-1 bg-gray-800/50 border border-gray-700 text-white px-3 py-3 md:px-5 md:py-4 rounded-lg md:rounded-[3rem] focus:outline-none focus:ring-2 focus:ring-[#E95420] placeholder-gray-500 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-gray-800/50 border border-[#E95420]/30 text-white px-3 py-3 md:px-5 md:py-4 rounded-lg md:rounded-[3rem] focus:outline-none focus:ring-2 focus:ring-[#E95420] placeholder-gray-500 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder={isBlocked ? "Chat disabled" : "Type your message..."}
               autoFocus
             />
