@@ -1,11 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
-import { MessageCircle, User, Send, Globe, X, Users, LogOut, Circle, Check, CheckCheck, Paperclip, Image, Video, File, Menu, ShieldAlert, Download, UserCircle } from 'lucide-react';
-import AgentLogin from './AgentLogin';
+import { useState, useEffect, useRef } from "react";
+import {
+  MessageCircle,
+  User,
+  Send,
+  Globe,
+  X,
+  Users,
+  LogOut,
+  Circle,
+  Check,
+  CheckCheck,
+  Paperclip,
+  Image,
+  Video,
+  File,
+  Menu,
+  ShieldAlert,
+  Download,
+  UserCircle,
+} from "lucide-react";
+import AgentLogin from "./AgentLogin";
 
-const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5003' : '';
-const WS_URL = window.location.hostname === 'localhost'
-  ? 'ws://localhost:5004'
-  : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.hostname}/ws`;
+const API_URL =
+  window.location.hostname === "localhost" ? "http://localhost:5003" : "";
+const WS_URL =
+  window.location.hostname === "localhost"
+    ? "ws://localhost:5004"
+    : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.hostname}/ws`;
 
 /**
  * Multi-Agent Dashboard
@@ -23,9 +44,9 @@ function AgentDashboard() {
 
   // UI state
   const [selectedSession, setSelectedSession] = useState(null);
-  const [replyText, setReplyText] = useState('');
+  const [replyText, setReplyText] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const [agentStatus, setAgentStatus] = useState('online'); // online, away, busy
+  const [agentStatus, setAgentStatus] = useState("online"); // online, away, busy
   const [showSidebar, setShowSidebar] = useState(false); // Mobile sidebar toggle
 
   // Typing
@@ -53,21 +74,35 @@ function AgentDashboard() {
 
   // Check for existing login
   useEffect(() => {
-    const savedToken = localStorage.getItem('agent_token');
-    const savedAgent = localStorage.getItem('agent_info');
+    const savedToken = localStorage.getItem("agent_token");
+    const savedAgent = localStorage.getItem("agent_info");
+
+    // DEV BYPASS
+    if (window.location.hostname === "localhost") {
+      const devAgent = {
+        id: 1,
+        name: "Dev Agent",
+        username: "dev_agent",
+      };
+
+      setAgent(devAgent);
+      setToken("dev-token");
+      return;
+    }
+
     if (savedToken && savedAgent) {
       try {
         // Validate token format and expiry
-        const tokenParts = savedToken.split('.');
+        const tokenParts = savedToken.split(".");
         if (tokenParts.length === 3) {
           const payload = JSON.parse(atob(tokenParts[1]));
           const now = Math.floor(Date.now() / 1000);
 
           // Check if token is expired
           if (payload.exp && payload.exp < now) {
-            console.log('Token expired, clearing storage');
-            localStorage.removeItem('agent_token');
-            localStorage.removeItem('agent_info');
+            console.log("Token expired, clearing storage");
+            localStorage.removeItem("agent_token");
+            localStorage.removeItem("agent_info");
             return;
           }
         }
@@ -77,9 +112,9 @@ function AgentDashboard() {
         setAgent(agentData);
       } catch (error) {
         // Invalid data, clear storage
-        console.log('Invalid token or agent data, clearing storage');
-        localStorage.removeItem('agent_token');
-        localStorage.removeItem('agent_info');
+        console.log("Invalid token or agent data, clearing storage");
+        localStorage.removeItem("agent_token");
+        localStorage.removeItem("agent_info");
       }
     }
   }, []);
@@ -99,10 +134,12 @@ function AgentDashboard() {
   // Mark messages as read when viewing a session
   useEffect(() => {
     if (selectedSession && wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'mark_all_read',
-        targetSessionId: selectedSession
-      }));
+      wsRef.current.send(
+        JSON.stringify({
+          type: "mark_all_read",
+          targetSessionId: selectedSession,
+        }),
+      );
     }
   }, [selectedSession]);
 
@@ -113,12 +150,14 @@ function AgentDashboard() {
       wsRef.current.onopen = () => {
         setIsConnected(true);
         // Register as agent
-        wsRef.current.send(JSON.stringify({
-          type: 'agent_register',
-          agentId: agent.id,
-          agentName: agent.name,
-          token: token
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "agent_register",
+            agentId: agent.id,
+            agentName: agent.name,
+            token: token,
+          }),
+        );
       };
 
       wsRef.current.onmessage = (event) => {
@@ -126,7 +165,7 @@ function AgentDashboard() {
           const data = JSON.parse(event.data);
           handleWebSocketMessage(data);
         } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
+          console.error("Error parsing WebSocket message:", error);
         }
       };
 
@@ -136,7 +175,7 @@ function AgentDashboard() {
       };
 
       wsRef.current.onerror = () => {
-        console.error('WebSocket error');
+        console.error("WebSocket error");
       };
     } catch (error) {
       setTimeout(connectWebSocket, 3000);
@@ -145,33 +184,38 @@ function AgentDashboard() {
 
   const handleWebSocketMessage = (data) => {
     // Handle authentication errors
-    if (data.type === 'error') {
-      if (data.message === 'Authentication failed' || data.message === 'Invalid token') {
-        console.error('Authentication error:', data.message);
-        console.log('Your session has expired. Please login again.');
+    if (data.type === "error") {
+      if (
+        data.message === "Authentication failed" ||
+        data.message === "Invalid token"
+      ) {
+        console.error("Authentication error:", data.message);
+        console.log("Your session has expired. Please login again.");
         // Token is invalid, log out
-        alert('Your session has expired. Please login again.');
+        alert("Your session has expired. Please login again.");
         handleLogout();
       }
       return;
     }
 
     // Agent registered
-    if (data.type === 'agent_registered') {
-      console.log('✅ Agent registered:', data.agentName);
+    if (data.type === "agent_registered") {
+      console.log("✅ Agent registered:", data.agentName);
     }
 
     // Agents list updated
-    if (data.type === 'agents_list_updated') {
+    if (data.type === "agents_list_updated") {
       setOnlineAgents(data.agents);
     }
 
     // Unassigned sessions list (initial load - add all to allSessions)
-    if (data.type === 'unassigned_sessions') {
-      setAllSessions(prev => {
+    if (data.type === "unassigned_sessions") {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
-        data.sessions.forEach(s => {
-          const lastActivity = s.lastActivity ? new Date(s.lastActivity).getTime() : 0;
+        data.sessions.forEach((s) => {
+          const lastActivity = s.lastActivity
+            ? new Date(s.lastActivity).getTime()
+            : 0;
           const existing = newSessions.get(s.sessionId);
           newSessions.set(s.sessionId, {
             messages: existing?.messages || [],
@@ -180,7 +224,7 @@ function AgentDashboard() {
             customerName: s.customerName,
             customerPhone: s.customerPhone || null,
             messageCount: s.messageCount || 0,
-            lastActivity: lastActivity
+            lastActivity: lastActivity,
           });
         });
         return newSessions;
@@ -188,8 +232,8 @@ function AgentDashboard() {
     }
 
     // New user connected - add to all sessions
-    if (data.type === 'new_user_connected') {
-      setAllSessions(prev => {
+    if (data.type === "new_user_connected") {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         if (!newSessions.has(data.sessionId)) {
           newSessions.set(data.sessionId, {
@@ -197,14 +241,14 @@ function AgentDashboard() {
             project: data.project,
             isOnline: true,
             customerName: data.customerName,
-            lastActivity: 0
+            lastActivity: 0,
           });
         } else {
           const session = newSessions.get(data.sessionId);
           newSessions.set(data.sessionId, {
             ...session,
             isOnline: true,
-            customerName: data.customerName || session.customerName
+            customerName: data.customerName || session.customerName,
           });
         }
         return newSessions;
@@ -212,35 +256,40 @@ function AgentDashboard() {
     }
 
     // New user message - add to the session
-    if (data.type === 'new_user_message') {
-      setAllSessions(prev => {
+    if (data.type === "new_user_message") {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const existing = newSessions.get(data.sessionId) || {
-          messages: [], project: data.project, isOnline: data.isOnline ?? true, customerInfo: data.customerInfo || null
+          messages: [],
+          project: data.project,
+          isOnline: data.isOnline ?? true,
+          customerInfo: data.customerInfo || null,
         };
 
-        const newMessage = !existing.messages.some(m => m.id === data.messageId)
+        const newMessage = !existing.messages.some(
+          (m) => m.id === data.messageId,
+        )
           ? {
               id: data.messageId,
               text: data.text,
-              sender: 'user',
+              sender: "user",
               timestamp: new Date(data.timestamp),
               needsHumanSupport: data.needsHumanSupport,
               fileUrl: data.fileUrl,
               fileType: data.fileType,
-              fileName: data.fileName
+              fileName: data.fileName,
             }
           : null;
 
         if (newMessage) {
           if (selectedSession !== data.sessionId) {
-            setUnreadCounts(prev => ({
+            setUnreadCounts((prev) => ({
               ...prev,
-              [data.sessionId]: (prev[data.sessionId] || 0) + 1
+              [data.sessionId]: (prev[data.sessionId] || 0) + 1,
             }));
           } else {
             setTimeout(() => {
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             }, 100);
           }
         }
@@ -249,8 +298,13 @@ function AgentDashboard() {
           ...existing,
           isOnline: data.isOnline ?? existing.isOnline,
           lastActivity: Date.now(),
-          customerInfo: data.customerInfo && !existing.customerInfo ? data.customerInfo : existing.customerInfo,
-          messages: newMessage ? [...existing.messages, newMessage] : existing.messages
+          customerInfo:
+            data.customerInfo && !existing.customerInfo
+              ? data.customerInfo
+              : existing.customerInfo,
+          messages: newMessage
+            ? [...existing.messages, newMessage]
+            : existing.messages,
         });
 
         return newSessions;
@@ -258,29 +312,32 @@ function AgentDashboard() {
     }
 
     // Session assigned (just log, no need to move between lists)
-    if (data.type === 'session_assigned') {
+    if (data.type === "session_assigned") {
       console.log(`Session ${data.sessionId} assigned to ${data.agentName}`);
     }
 
     // Claim accepted
-    if (data.type === 'claim_accepted') {
-      console.log('✅ Session claimed:', data.sessionId);
+    if (data.type === "claim_accepted") {
+      console.log("✅ Session claimed:", data.sessionId);
     }
 
     // User typing
-    if (data.type === 'user_typing') {
-      setUserTyping(prev => ({ ...prev, [data.sessionId]: true }));
+    if (data.type === "user_typing") {
+      setUserTyping((prev) => ({ ...prev, [data.sessionId]: true }));
       if (typingTimeoutRefs.current.has(data.sessionId)) {
         clearTimeout(typingTimeoutRefs.current.get(data.sessionId));
       }
-      typingTimeoutRefs.current.set(data.sessionId, setTimeout(() => {
-        setUserTyping(prev => ({ ...prev, [data.sessionId]: false }));
-      }, 3000));
+      typingTimeoutRefs.current.set(
+        data.sessionId,
+        setTimeout(() => {
+          setUserTyping((prev) => ({ ...prev, [data.sessionId]: false }));
+        }, 3000),
+      );
     }
 
     // User disconnected
-    if (data.type === 'user_disconnected') {
-      setAllSessions(prev => {
+    if (data.type === "user_disconnected") {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const session = newSessions.get(data.sessionId);
         if (session) {
@@ -291,13 +348,13 @@ function AgentDashboard() {
     }
 
     // Agent disconnected
-    if (data.type === 'agent_disconnected') {
+    if (data.type === "agent_disconnected") {
       console.log(`Agent ${data.agentName} disconnected`);
     }
 
     // Human support requested by AI
-    if (data.type === 'human_support_requested') {
-      setAllSessions(prev => {
+    if (data.type === "human_support_requested") {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         if (!newSessions.has(data.sessionId)) {
           newSessions.set(data.sessionId, {
@@ -306,7 +363,7 @@ function AgentDashboard() {
             isOnline: true,
             customerName: data.customerName,
             hasNewMessage: true,
-            lastActivity: Date.now()
+            lastActivity: Date.now(),
           });
         }
         return newSessions;
@@ -314,28 +371,31 @@ function AgentDashboard() {
     }
 
     // Message status updates
-    if (data.type === 'message_status_update') {
-      setMessageStatuses(prev => ({
+    if (data.type === "message_status_update") {
+      setMessageStatuses((prev) => ({
         ...prev,
-        [data.messageId]: data.status
+        [data.messageId]: data.status,
       }));
     }
 
     // All messages read by user
-    if (data.type === 'all_messages_read' || data.type === 'all_messages_read_by_agent') {
+    if (
+      data.type === "all_messages_read" ||
+      data.type === "all_messages_read_by_agent"
+    ) {
       const sessionId = data.sessionId;
-      setMessageStatuses(prev => {
+      setMessageStatuses((prev) => {
         const updated = { ...prev };
         // Mark all existing status as read
-        Object.keys(updated).forEach(id => {
-          updated[id] = 'read';
+        Object.keys(updated).forEach((id) => {
+          updated[id] = "read";
         });
         // Also mark any agent messages for this session that don't have status yet
         if (sessionId && allSessions.has(sessionId)) {
           const session = allSessions.get(sessionId);
-          session.messages?.forEach(msg => {
-            if (msg.sender === 'agent' && !updated[msg.id]) {
-              updated[msg.id] = 'read';
+          session.messages?.forEach((msg) => {
+            if (msg.sender === "agent" && !updated[msg.id]) {
+              updated[msg.id] = "read";
             }
           });
         }
@@ -344,16 +404,21 @@ function AgentDashboard() {
     }
 
     // File deleted by customer
-    if (data.type === 'file_deleted') {
+    if (data.type === "file_deleted") {
       const sessionId = data.sessionId;
       const messageId = data.messageId;
-      console.log('🗑️ File deleted from session', sessionId, 'message', messageId);
+      console.log(
+        "🗑️ File deleted from session",
+        sessionId,
+        "message",
+        messageId,
+      );
 
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const session = newSessions.get(sessionId);
         if (session) {
-          session.messages = session.messages.filter(m => m.id !== messageId);
+          session.messages = session.messages.filter((m) => m.id !== messageId);
           newSessions.set(sessionId, session);
         }
         return newSessions;
@@ -361,40 +426,45 @@ function AgentDashboard() {
     }
 
     // Agent replied (another agent sent a message)
-    if (data.type === 'agent_replied') {
+    if (data.type === "agent_replied") {
       // Skip if this is my own message (I already added it to UI)
       if (data.agentId === agent.id) {
         // But update the status to delivered
-        setMessageStatuses(prev => ({
+        setMessageStatuses((prev) => ({
           ...prev,
-          [data.messageId]: 'delivered'
+          [data.messageId]: "delivered",
         }));
         return;
       }
 
       // Add the reply to all sessions so all agents can see who responded
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const session = newSessions.get(data.sessionId);
 
         if (session) {
           // Check if message already exists
-          const messageExists = session.messages.some(m => m.id === data.messageId);
+          const messageExists = session.messages.some(
+            (m) => m.id === data.messageId,
+          );
           if (!messageExists) {
             newSessions.set(data.sessionId, {
               ...session,
               lastActivity: Date.now(),
-              messages: [...session.messages, {
-                id: data.messageId,
-                text: data.text,
-                sender: 'agent',
-                timestamp: new Date(data.timestamp),
-                agentName: data.agentName,
-                agentId: data.agentId,
-                fileUrl: data.fileUrl,
-                fileType: data.fileType,
-                fileName: data.fileName
-              }]
+              messages: [
+                ...session.messages,
+                {
+                  id: data.messageId,
+                  text: data.text,
+                  sender: "agent",
+                  timestamp: new Date(data.timestamp),
+                  agentName: data.agentName,
+                  agentId: data.agentId,
+                  fileUrl: data.fileUrl,
+                  fileType: data.fileType,
+                  fileName: data.fileName,
+                },
+              ],
             });
           }
         }
@@ -403,16 +473,16 @@ function AgentDashboard() {
     }
 
     // Customer info update (when customer submits form)
-    if (data.type === 'customer_info_update') {
-      console.log('📋 Customer info received:', data.customerInfo);
+    if (data.type === "customer_info_update") {
+      console.log("📋 Customer info received:", data.customerInfo);
 
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const session = newSessions.get(data.sessionId);
         if (session) {
           newSessions.set(data.sessionId, {
             ...session,
-            customerInfo: data.customerInfo
+            customerInfo: data.customerInfo,
           });
         }
         return newSessions;
@@ -428,22 +498,26 @@ function AgentDashboard() {
 
     // Notify backend that we're viewing this session (for AI stopping)
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'agent_claim_session',
-        sessionId,
-        agentId: agent.id
-      }));
+      wsRef.current.send(
+        JSON.stringify({
+          type: "agent_claim_session",
+          sessionId,
+          agentId: agent.id,
+        }),
+      );
     }
 
     // Load history and customer info
     const session = allSessions.get(sessionId);
     try {
       // Always fetch customer info (even if messages already loaded)
-      const customerResponse = await fetch(`${API_URL}/api/chat/customer/${sessionId}`);
+      const customerResponse = await fetch(
+        `${API_URL}/api/chat/customer/${sessionId}`,
+      );
       const customerData = await customerResponse.json();
       if (customerData.success && customerData.customer) {
         const customer = customerData.customer;
-        setAllSessions(prev => {
+        setAllSessions((prev) => {
           const newSessions = new Map(prev);
           const sess = newSessions.get(sessionId);
           if (sess) {
@@ -457,8 +531,8 @@ function AgentDashboard() {
                 ipAddress: customer.ip_address,
                 country: customer.country,
                 isVpn: customer.is_vpn,
-                vpnProvider: customer.vpn_provider
-              }
+                vpnProvider: customer.vpn_provider,
+              },
             });
           }
           return newSessions;
@@ -467,27 +541,29 @@ function AgentDashboard() {
 
       // Load message history only if not already loaded
       if (!session || session.messages.length === 0) {
-        const response = await fetch(`${API_URL}/api/contact/user-messages/${sessionId}`);
+        const response = await fetch(
+          `${API_URL}/api/contact/user-messages/${sessionId}`,
+        );
         const data = await response.json();
         if (data.success && data.messages.length > 0) {
           const history = [];
           const seenIds = new Set();
 
-          data.messages.forEach(msg => {
+          data.messages.forEach((msg) => {
             if (seenIds.has(msg.id)) return;
             seenIds.add(msg.id);
 
             history.push({
               id: msg.id,
               text: msg.text,
-              sender: 'user',
+              sender: "user",
               timestamp: new Date(msg.timestamp),
               fileUrl: msg.fileUrl,
               fileType: msg.fileType,
-              fileName: msg.fileName
+              fileName: msg.fileName,
             });
 
-            msg.replies?.forEach(reply => {
+            msg.replies?.forEach((reply) => {
               const replyId = `reply_${reply.id}`;
               if (seenIds.has(replyId)) return;
               seenIds.add(replyId);
@@ -495,17 +571,17 @@ function AgentDashboard() {
               history.push({
                 id: replyId,
                 text: reply.text,
-                sender: 'agent',
+                sender: "agent",
                 timestamp: new Date(reply.timestamp),
                 agentName: reply.admin,
                 fileUrl: reply.fileUrl,
                 fileType: reply.fileType,
-                fileName: reply.fileName
+                fileName: reply.fileName,
               });
             });
           });
 
-          setAllSessions(prev => {
+          setAllSessions((prev) => {
             const newSessions = new Map(prev);
             const sess = newSessions.get(sessionId);
             if (sess) {
@@ -516,11 +592,11 @@ function AgentDashboard() {
         }
       }
     } catch (error) {
-      console.error('Error loading session data:', error);
+      console.error("Error loading session data:", error);
     }
 
     // Clear unread count for this session
-    setUnreadCounts(prev => {
+    setUnreadCounts((prev) => {
       const updated = { ...prev };
       delete updated[sessionId];
       return updated;
@@ -533,24 +609,24 @@ function AgentDashboard() {
 
     setIsUploading(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
       const response = await fetch(`${API_URL}/api/upload`, {
-        method: 'POST',
-        body: formData
+        method: "POST",
+        body: formData,
       });
 
       const result = await response.json();
       if (result.success) {
         return result.file;
       } else {
-        alert('File upload failed: ' + result.error);
+        alert("File upload failed: " + result.error);
         return null;
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('File upload failed');
+      console.error("Upload error:", error);
+      alert("File upload failed");
       return null;
     } finally {
       setIsUploading(false);
@@ -560,43 +636,49 @@ function AgentDashboard() {
   // Handle file selection
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
-    console.log(`📎 Agent selected ${files.length} file(s):`, files.map(f => f.name));
+    console.log(
+      `📎 Agent selected ${files.length} file(s):`,
+      files.map((f) => f.name),
+    );
     if (files.length > 0) {
       // Add to existing files instead of replacing
-      setSelectedFiles(prev => {
+      setSelectedFiles((prev) => {
         const updated = [...prev, ...files];
-        console.log(`📦 Agent total files now: ${updated.length}`, updated.map(f => f.name));
+        console.log(
+          `📦 Agent total files now: ${updated.length}`,
+          updated.map((f) => f.name),
+        );
         return updated;
       });
     }
     // Reset input to allow selecting same file again
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   // Remove file from selection
   const removeFile = (index) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Delete uploaded file from server and messages
   const deleteFile = async (sessionId, msg) => {
     try {
       // Extract filename from URL
-      const filename = msg.fileUrl.split('/').pop();
+      const filename = msg.fileUrl.split("/").pop();
 
       // Delete from server
       await fetch(`http://localhost:5003/api/upload/${filename}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       // Remove from messages in the session
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const session = newSessions.get(sessionId);
         if (session) {
-          session.messages = session.messages.filter(m => m.id !== msg.id);
+          session.messages = session.messages.filter((m) => m.id !== msg.id);
           newSessions.set(sessionId, session);
         }
         return newSessions;
@@ -604,20 +686,22 @@ function AgentDashboard() {
 
       // Notify customer via WebSocket that file was deleted
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: 'file_deleted',
-          sessionId: sessionId,
-          messageId: msg.id
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "file_deleted",
+            sessionId: sessionId,
+            messageId: msg.id,
+          }),
+        );
       }
     } catch (error) {
-      console.error('Error deleting file:', error);
+      console.error("Error deleting file:", error);
       // Still remove from UI even if server delete fails
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const session = newSessions.get(sessionId);
         if (session) {
-          session.messages = session.messages.filter(m => m.id !== msg.id);
+          session.messages = session.messages.filter((m) => m.id !== msg.id);
           newSessions.set(sessionId, session);
         }
         return newSessions;
@@ -649,52 +733,58 @@ function AgentDashboard() {
 
     const messageId = `agent_${agent.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const session = allSessions.get(selectedSession);
-    const lastUserMessage = session?.messages?.slice().reverse().find(m => m.sender === 'user');
+    const lastUserMessage = session?.messages
+      ?.slice()
+      .reverse()
+      .find((m) => m.sender === "user");
 
     try {
       // Save to database
       if (lastUserMessage) {
         await fetch(`${API_URL}/api/contact/reply`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messageId: lastUserMessage.id,
-            reply: '',
+            reply: "",
             email: `${selectedSession}@chat.local`,
             userId: selectedSession,
             agentId: agent.id,
             agentName: agent.name,
             fileUrl: file.url,
             fileType: file.type,
-            fileName: file.originalName
-          })
+            fileName: file.originalName,
+          }),
         });
       }
 
       // Set initial status as 'sent'
-      setMessageStatuses(prev => ({
+      setMessageStatuses((prev) => ({
         ...prev,
-        [messageId]: 'sent'
+        [messageId]: "sent",
       }));
 
       // Add to UI
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const sess = newSessions.get(selectedSession);
         if (sess) {
-          if (!sess.messages.some(m => m.id === messageId)) {
+          if (!sess.messages.some((m) => m.id === messageId)) {
             newSessions.set(selectedSession, {
               ...sess,
-              messages: [...sess.messages, {
-                id: messageId,
-                text: '',
-                sender: 'agent',
-                timestamp: new Date(),
-                agentName: agent.name,
-                fileUrl: file.url,
-                fileType: file.type,
-                fileName: file.originalName
-              }]
+              messages: [
+                ...sess.messages,
+                {
+                  id: messageId,
+                  text: "",
+                  sender: "agent",
+                  timestamp: new Date(),
+                  agentName: agent.name,
+                  fileUrl: file.url,
+                  fileType: file.type,
+                  fileName: file.originalName,
+                },
+              ],
             });
           }
         }
@@ -703,26 +793,30 @@ function AgentDashboard() {
 
       // Send via WebSocket
       if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: 'agent_message',
-          text: '',
-          messageId: messageId,
-          sessionId: selectedSession,
-          agentId: agent.id,
-          agentName: agent.name,
-          fileUrl: file.url,
-          fileType: file.type,
-          fileName: file.originalName
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "agent_message",
+            text: "",
+            messageId: messageId,
+            sessionId: selectedSession,
+            agentId: agent.id,
+            agentName: agent.name,
+            fileUrl: file.url,
+            fileType: file.type,
+            fileName: file.originalName,
+          }),
+        );
 
         // Mark all user messages as read since agent is responding
-        wsRef.current.send(JSON.stringify({
-          type: 'mark_all_read',
-          targetSessionId: selectedSession
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "mark_all_read",
+            targetSessionId: selectedSession,
+          }),
+        );
       }
     } catch (error) {
-      console.error('Error sending file message:', error);
+      console.error("Error sending file message:", error);
     }
   };
 
@@ -733,58 +827,64 @@ function AgentDashboard() {
 
     const message = replyText;
     const messageId = `agent_${agent.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    setReplyText('');
+    setReplyText("");
 
     // Get last message ID for database
     const session = allSessions.get(selectedSession);
-    const lastUserMessage = session?.messages?.slice().reverse().find(m => m.sender === 'user');
+    const lastUserMessage = session?.messages
+      ?.slice()
+      .reverse()
+      .find((m) => m.sender === "user");
 
     try {
       // Save to database
       if (lastUserMessage) {
         // Extract numeric ID if it has prefix (e.g., "db_user_107" -> "107")
         let dbMessageId = lastUserMessage.id;
-        if (typeof dbMessageId === 'string' && dbMessageId.includes('_')) {
-          const parts = dbMessageId.split('_');
+        if (typeof dbMessageId === "string" && dbMessageId.includes("_")) {
+          const parts = dbMessageId.split("_");
           dbMessageId = parts[parts.length - 1];
         }
 
         await fetch(`${API_URL}/api/contact/reply`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messageId: dbMessageId,
             reply: message,
             email: `${selectedSession}@chat.local`,
             userId: selectedSession,
             agentId: agent.id,
-            agentName: agent.name
-          })
+            agentName: agent.name,
+          }),
         });
       }
 
       // Set initial status as 'sent'
-      setMessageStatuses(prev => ({
+      setMessageStatuses((prev) => ({
         ...prev,
-        [messageId]: 'sent'
+        [messageId]: "sent",
       }));
 
       // Add to UI
-      setAllSessions(prev => {
+      setAllSessions((prev) => {
         const newSessions = new Map(prev);
         const sess = newSessions.get(selectedSession);
         if (sess) {
           // Check if message already exists to prevent duplicates
-          if (!sess.messages.some(m => m.id === messageId)) {
+          if (!sess.messages.some((m) => m.id === messageId)) {
             newSessions.set(selectedSession, {
               ...sess,
-              messages: [...sess.messages, {
-                id: messageId,
-                text: message,
-                sender: 'agent',
-                timestamp: new Date(),
-                agentName: agent.name
-              }]
+              messages: [
+                ...sess.messages,
+                {
+                  id: messageId,
+                  text: message,
+                  sender: "agent",
+                  timestamp: new Date(),
+                  agentName: agent.name,
+                },
+              ],
             });
           }
         }
@@ -793,29 +893,33 @@ function AgentDashboard() {
 
       // Send via WebSocket for real-time delivery
       if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: 'agent_message',
-          text: message,
-          messageId: messageId,
-          sessionId: selectedSession,
-          agentId: agent.id,
-          agentName: agent.name,
-          timestamp: new Date().toISOString()
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "agent_message",
+            text: message,
+            messageId: messageId,
+            sessionId: selectedSession,
+            agentId: agent.id,
+            agentName: agent.name,
+            timestamp: new Date().toISOString(),
+          }),
+        );
 
         // Mark all user messages as read since agent is responding
-        wsRef.current.send(JSON.stringify({
-          type: 'mark_all_read',
-          targetSessionId: selectedSession
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "mark_all_read",
+            targetSessionId: selectedSession,
+          }),
+        );
       }
 
       // Auto-scroll to bottom after sending message
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     } catch (error) {
-      console.error('Error sending reply:', error);
+      console.error("Error sending reply:", error);
     }
   };
 
@@ -825,11 +929,13 @@ function AgentDashboard() {
     if (now - (lastTypingRef.current.get(sessionId) || 0) > 2000) {
       lastTypingRef.current.set(sessionId, now);
       if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
-          type: 'typing',
-          isTyping: true,
-          targetSessionId: sessionId
-        }));
+        wsRef.current.send(
+          JSON.stringify({
+            type: "typing",
+            isTyping: true,
+            targetSessionId: sessionId,
+          }),
+        );
       }
     }
   };
@@ -838,11 +944,13 @@ function AgentDashboard() {
   const changeStatus = (newStatus) => {
     setAgentStatus(newStatus);
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({
-        type: 'agent_status_change',
-        agentId: agent.id,
-        status: newStatus
-      }));
+      wsRef.current.send(
+        JSON.stringify({
+          type: "agent_status_change",
+          agentId: agent.id,
+          status: newStatus,
+        }),
+      );
     }
   };
 
@@ -856,7 +964,7 @@ function AgentDashboard() {
         setShowCustomerList(true);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      console.error("Error fetching customers:", error);
     }
   };
 
@@ -865,29 +973,40 @@ function AgentDashboard() {
     if (allCustomers.length === 0) return;
 
     // Create CSV content
-    const headers = ['Full Name', 'Email', 'Phone', 'Country', 'IP Address', 'Session ID', 'Created At'];
-    const rows = allCustomers.map(c => [
-      c.full_name || '',
-      c.email || '',
-      c.phone || '',
-      c.country || '',
-      c.ip_address || '',
-      c.session_id || '',
-      new Date(c.created_at).toLocaleString()
+    const headers = [
+      "Full Name",
+      "Email",
+      "Phone",
+      "Country",
+      "IP Address",
+      "Session ID",
+      "Created At",
+    ];
+    const rows = allCustomers.map((c) => [
+      c.full_name || "",
+      c.email || "",
+      c.phone || "",
+      c.country || "",
+      c.ip_address || "",
+      c.session_id || "",
+      new Date(c.created_at).toLocaleString(),
     ]);
 
     const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
 
     // Download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `customers_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `customers_${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -895,8 +1014,8 @@ function AgentDashboard() {
 
   // Logout
   const handleLogout = () => {
-    localStorage.removeItem('agent_token');
-    localStorage.removeItem('agent_info');
+    localStorage.removeItem("agent_token");
+    localStorage.removeItem("agent_info");
     if (wsRef.current) {
       wsRef.current.close();
     }
@@ -915,10 +1034,14 @@ function AgentDashboard() {
     return <AgentLogin onLogin={handleLogin} />;
   }
 
-  const selectedSessionData = selectedSession ? allSessions.get(selectedSession) : null;
+  const selectedSessionData = selectedSession
+    ? allSessions.get(selectedSession)
+    : null;
+
+  // bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col md:flex-row overflow-hidden">
+    <div className="h-screen gradient-bg-rest flex flex-col md:flex-row overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {showSidebar && (
         <div
@@ -928,13 +1051,15 @@ function AgentDashboard() {
       )}
 
       {/* Sidebar */}
-      <div className={`
+      <div
+        className={`
         fixed md:relative inset-y-0 left-0 z-50
-        w-80 md:w-80 bg-gray-900/50 border-r border-gray-700
+        w-80 md:w-80 bg-[#300A24] border-r border-gray-100/10
         flex flex-col h-full overflow-y-auto
         transform transition-transform duration-300 ease-in-out
-        ${showSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
+        ${showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+      `}
+      >
         {/* Agent Info */}
         <div className="p-3 md:p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
@@ -943,15 +1068,21 @@ function AgentDashboard() {
                 <User size={16} className="text-purple-400 md:w-5 md:h-5" />
               </div>
               <div>
-                <p className="text-white font-medium text-sm md:text-base">{agent.name}</p>
-                <p className="text-gray-500 text-[10px] md:text-xs">{agent.role}</p>
+                <p className="text-white font-medium text-sm md:text-base">
+                  {agent.name}
+                </p>
+                <p className="text-white text-[10px] md:text-xs">
+                  {agent.role}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 md:gap-2">
-              <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+              <div
+                className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${isConnected ? "bg-green-400" : "bg-red-400"}`}
+              ></div>
               <button
                 onClick={handleLogout}
-                className="p-1.5 md:p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white"
+                className="p-1.5 md:p-2 hover:bg-gray-700 rounded-lg text-white hover:text-white"
                 title="Logout"
               >
                 <LogOut size={16} className="md:w-[18px] md:h-[18px]" />
@@ -961,16 +1092,18 @@ function AgentDashboard() {
 
           {/* Status selector */}
           <div className="mt-2 md:mt-3 flex gap-1.5 md:gap-2">
-            {['online', 'away', 'busy'].map(status => (
+            {["online", "away", "busy"].map((status) => (
               <button
                 key={status}
                 onClick={() => changeStatus(status)}
-                className={`flex-1 py-1 md:py-1.5 rounded text-[10px] md:text-xs capitalize ${
+                className={`flex-1 py-1 md:py-1.5 rounded-3xl text-[10px] md:text-xs capitalize ${
                   agentStatus === status
-                    ? status === 'online' ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                      : status === 'away' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
-                      : 'bg-red-500/20 text-red-400 border border-red-500/50'
-                    : 'bg-gray-800 text-gray-500 border border-gray-700'
+                    ? status === "online"
+                      ? "bg-green-500/20 text-green-400 border border-green-500/50"
+                      : status === "away"
+                        ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/50"
+                        : "bg-red-500/20 text-red-400 border border-red-500/50"
+                    : "bg-gray-800 text-white border border-gray-700"
                 }`}
               >
                 {status}
@@ -981,27 +1114,36 @@ function AgentDashboard() {
 
         {/* Online Agents */}
         <div className="p-2 md:p-3 border-b border-gray-700">
-          <div className="flex items-center gap-1.5 md:gap-2 text-gray-400 text-[10px] md:text-xs mb-1.5 md:mb-2">
+          <div className="flex items-center gap-1.5 md:gap-2 text-white text-[10px] md:text-xs mb-1.5 md:mb-2">
             <Users size={12} className="md:w-3.5 md:h-3.5" />
             <span>Online Agents ({onlineAgents.length})</span>
           </div>
           <div className="flex flex-wrap gap-1.5 md:gap-2">
-            {onlineAgents.map(a => (
+            {onlineAgents.map((a) => (
               <div
                 key={a.id}
                 className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded text-[10px] md:text-xs flex items-center gap-1 ${
-                  a.id === agent.id ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-800 text-gray-400'
+                  a.id === agent.id
+                    ? "bg-purple-500/20 text-purple-400"
+                    : "bg-gray-800 text-white"
                 }`}
               >
-                <Circle size={6} className={`md:w-2 md:h-2 ${
-                  a.status === 'online' ? 'fill-green-400 text-green-400'
-                    : a.status === 'away' ? 'fill-yellow-400 text-yellow-400'
-                    : 'fill-red-400 text-red-400'
-                }`} />
+                <Circle
+                  size={6}
+                  className={`md:w-2 md:h-2 ${
+                    a.status === "online"
+                      ? "fill-green-400 text-green-400"
+                      : a.status === "away"
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "fill-red-400 text-red-400"
+                  }`}
+                />
                 <span className="hidden sm:inline">{a.name}</span>
-                <span className="sm:hidden">{a.name.split(' ')[0]}</span>
+                <span className="sm:hidden">{a.name.split(" ")[0]}</span>
                 {a.assignedCount > 0 && (
-                  <span className="bg-gray-700 px-1 rounded text-[9px] md:text-[10px]">{a.assignedCount}</span>
+                  <span className="bg-gray-700 px-1 rounded text-[9px] md:text-[10px]">
+                    {a.assignedCount}
+                  </span>
                 )}
               </div>
             ))}
@@ -1012,7 +1154,7 @@ function AgentDashboard() {
         <div className="p-2 md:p-3 border-b border-gray-700">
           <button
             onClick={fetchAllCustomers}
-            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold py-2 md:py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 text-xs md:text-sm"
+            className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold py-2 md:py-2.5 rounded-3xl transition-all flex items-center justify-center gap-2 text-xs md:text-sm"
           >
             <UserCircle size={16} className="md:w-4 md:h-4" />
             Customer List
@@ -1021,59 +1163,73 @@ function AgentDashboard() {
 
         {/* All Sessions */}
         <div className="flex-1 overflow-y-auto p-2 md:p-3">
-          <div className="flex items-center gap-1.5 md:gap-2 text-gray-400 text-[10px] md:text-xs mb-1.5 md:mb-2">
+          <div className="flex items-center gap-1.5 md:gap-2 text-white text-[10px] md:text-xs mb-1.5 md:mb-2">
             <MessageCircle size={12} className="md:w-3.5 md:h-3.5" />
             <span>All Chats ({allSessions.size})</span>
           </div>
           <div className="space-y-1.5 md:space-y-2">
-            {Array.from(allSessions.entries()).sort((a, b) => (b[1].lastActivity || 0) - (a[1].lastActivity || 0)).map(([sessionId, session]) => (
-              <div
-                key={sessionId}
-                onClick={() => {
-                  openSession(sessionId);
-                }}
-                className={`p-2 md:p-3 rounded-lg cursor-pointer transition ${
-                  selectedSession === sessionId
-                    ? 'bg-purple-500/20 border border-purple-500/50'
-                    : 'bg-gray-800/50 border border-gray-700 hover:border-gray-600'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1.5 md:gap-2">
-                  <div className="flex flex-col gap-0.5 flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 md:gap-2">
-                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full flex-shrink-0 ${session.isOnline ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
-                      <span className="text-white text-xs md:text-sm truncate">
-                        {session.customerName || session.customerInfo?.fullName || sessionId.split('_')[1]?.substring(0, 8) + '...'}
-                      </span>
+            {Array.from(allSessions.entries())
+              .sort(
+                (a, b) => (b[1].lastActivity || 0) - (a[1].lastActivity || 0),
+              )
+              .map(([sessionId, session]) => (
+                <div
+                  key={sessionId}
+                  onClick={() => {
+                    openSession(sessionId);
+                  }}
+                  className={`p-2 md:p-3 rounded-lg cursor-pointer transition ${
+                    selectedSession === sessionId
+                      ? "bg-purple-500/20 border border-purple-500/50"
+                      : "bg-gray-800/50 border border-gray-700 hover:border-gray-600"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1.5 md:gap-2">
+                    <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 md:gap-2">
+                        <div
+                          className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full flex-shrink-0 ${session.isOnline ? "bg-green-400 animate-pulse" : "bg-gray-500"}`}
+                        ></div>
+                        <span className="text-white text-xs md:text-sm truncate">
+                          {session.customerName ||
+                            session.customerInfo?.fullName ||
+                            sessionId.split("_")[1]?.substring(0, 8) + "..."}
+                        </span>
+                      </div>
+                      {(session.customerInfo?.phone ||
+                        session.customerPhone) && (
+                        <span className="text-white text-[9px] md:text-[10px] ml-4 md:ml-5 truncate">
+                          {session.customerInfo?.phone || session.customerPhone}
+                        </span>
+                      )}
                     </div>
-                    {(session.customerInfo?.phone || session.customerPhone) && (
-                      <span className="text-gray-400 text-[9px] md:text-[10px] ml-4 md:ml-5 truncate">
-                        {session.customerInfo?.phone || session.customerPhone}
+                    {unreadCounts[sessionId] > 0 && (
+                      <div className="bg-red-500 text-white text-[9px] md:text-[10px] font-bold rounded-full min-w-[16px] md:min-w-[18px] h-4 md:h-[18px] flex items-center justify-center px-1">
+                        {unreadCounts[sessionId]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1 flex-wrap">
+                    <span className="text-white text-[10px] md:text-xs flex items-center gap-0.5 md:gap-1">
+                      <Globe size={8} className="md:w-2.5 md:h-2.5" />
+                      <span className="hidden sm:inline">
+                        {session.project}
+                      </span>
+                    </span>
+                    <span className="text-white text-[10px] md:text-xs">
+                      {session.messages?.length || session.messageCount || 0}{" "}
+                      msg
+                    </span>
+                    {userTyping[sessionId] && (
+                      <span className="text-purple-400 text-[10px] md:text-xs animate-pulse">
+                        typing...
                       </span>
                     )}
                   </div>
-                  {unreadCounts[sessionId] > 0 && (
-                    <div className="bg-red-500 text-white text-[9px] md:text-[10px] font-bold rounded-full min-w-[16px] md:min-w-[18px] h-4 md:h-[18px] flex items-center justify-center px-1">
-                      {unreadCounts[sessionId]}
-                    </div>
-                  )}
                 </div>
-                <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1 flex-wrap">
-                  <span className="text-gray-500 text-[10px] md:text-xs flex items-center gap-0.5 md:gap-1">
-                    <Globe size={8} className="md:w-2.5 md:h-2.5" />
-                    <span className="hidden sm:inline">{session.project}</span>
-                  </span>
-                  <span className="text-gray-500 text-[10px] md:text-xs">
-                    {session.messages?.length || session.messageCount || 0} msg
-                  </span>
-                  {userTyping[sessionId] && (
-                    <span className="text-purple-400 text-[10px] md:text-xs animate-pulse">typing...</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
             {allSessions.size === 0 && (
-              <p className="text-gray-600 text-[10px] md:text-xs text-center py-3 md:py-4">
+              <p className="text-white text-[10px] md:text-xs text-center py-3 md:py-4">
                 No chats yet. Waiting for customers...
               </p>
             )}
@@ -1091,59 +1247,93 @@ function AgentDashboard() {
                 {/* Mobile menu button */}
                 <button
                   onClick={() => setShowSidebar(true)}
-                  className="md:hidden absolute top-3 left-3 p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-400"
+                  className="md:hidden absolute top-3 left-3 p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
                 >
                   <Menu size={20} />
                 </button>
 
                 <div className="flex items-center gap-2 md:gap-3 flex-1 ml-12 md:ml-0">
                   <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User size={16} className="text-gray-400 md:w-5 md:h-5" />
+                    <User size={16} className="text-white md:w-5 md:h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium text-sm md:text-base truncate">
-                      {selectedSessionData.customerInfo?.fullName || selectedSessionData.customerName || selectedSession.split('_')[1]?.substring(0, 12) + '...'}
+                      {selectedSessionData.customerInfo?.fullName ||
+                        selectedSessionData.customerName ||
+                        selectedSession.split("_")[1]?.substring(0, 12) + "..."}
                     </p>
                     <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                      <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${selectedSessionData.isOnline ? 'bg-green-400' : 'bg-gray-500'}`}></div>
-                      <span className="text-gray-400 text-xs md:text-sm">
-                        {selectedSessionData.isOnline ? 'Online' : 'Offline'}
+                      <div
+                        className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${selectedSessionData.isOnline ? "bg-green-400" : "bg-gray-500"}`}
+                      ></div>
+                      <span className="text-white text-xs md:text-sm">
+                        {selectedSessionData.isOnline ? "Online" : "Offline"}
                       </span>
-                      <span className="text-gray-600 hidden sm:inline">•</span>
-                      <span className="text-gray-400 text-xs md:text-sm hidden sm:inline">{selectedSessionData.project}</span>
+                      <span className="text-white hidden sm:inline">•</span>
+                      <span className="text-white text-xs md:text-sm hidden sm:inline">
+                        {selectedSessionData.project}
+                      </span>
                     </div>
                   </div>
                 </div>
-                {(selectedSessionData.customerInfo || selectedSessionData.customerName || selectedSessionData.customerPhone) && (
+                {(selectedSessionData.customerInfo ||
+                  selectedSessionData.customerName ||
+                  selectedSessionData.customerPhone) && (
                   <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-2 md:px-3 py-1.5 md:py-2 text-[10px] md:text-xs space-y-0.5 md:space-y-1 w-full md:w-auto">
-                    <div className="text-gray-400">
-                      <span className="text-gray-500">Name:</span> <span className="text-white">{selectedSessionData.customerInfo?.fullName || selectedSessionData.customerName || '-'}</span>
+                    <div className="text-white">
+                      <span className="text-white">Name:</span>{" "}
+                      <span className="text-white">
+                        {selectedSessionData.customerInfo?.fullName ||
+                          selectedSessionData.customerName ||
+                          "-"}
+                      </span>
                     </div>
-                    {(selectedSessionData.customerInfo?.email) && (
-                    <div className="text-gray-400">
-                      <span className="text-gray-500">Email:</span> {selectedSessionData.customerInfo.email}
-                    </div>
-                    )}
-                    <div className="text-gray-400">
-                      <span className="text-gray-500">Phone:</span> {selectedSessionData.customerInfo?.phone || selectedSessionData.customerPhone || '-'}
-                    </div>
-                    {selectedSessionData.customerInfo?.country && selectedSessionData.customerInfo.country !== 'Unknown' && (
-                      <div className="text-gray-400 flex items-center gap-1">
-                        <Globe size={12} className="text-blue-400" />
-                        <span className="text-gray-500">Location:</span> <span className="text-blue-400">{selectedSessionData.customerInfo.country}</span>
+                    {selectedSessionData.customerInfo?.email && (
+                      <div className="text-white">
+                        <span className="text-white">Email:</span>{" "}
+                        {selectedSessionData.customerInfo.email}
                       </div>
                     )}
-                    {selectedSessionData.customerInfo?.ipAddress && selectedSessionData.customerInfo.ipAddress !== 'Unknown' && (
-                      <div className="text-gray-400">
-                        <span className="text-gray-500">IP:</span> <span className="text-green-400 font-mono">{selectedSessionData.customerInfo.ipAddress}</span>
-                      </div>
-                    )}
+                    <div className="text-white">
+                      <span className="text-white">Phone:</span>{" "}
+                      {selectedSessionData.customerInfo?.phone ||
+                        selectedSessionData.customerPhone ||
+                        "-"}
+                    </div>
+                    {selectedSessionData.customerInfo?.country &&
+                      selectedSessionData.customerInfo.country !==
+                        "Unknown" && (
+                        <div className="text-white flex items-center gap-1">
+                          <Globe size={12} className="text-blue-400" />
+                          <span className="text-white">Location:</span>{" "}
+                          <span className="text-blue-400">
+                            {selectedSessionData.customerInfo.country}
+                          </span>
+                        </div>
+                      )}
+                    {selectedSessionData.customerInfo?.ipAddress &&
+                      selectedSessionData.customerInfo.ipAddress !==
+                        "Unknown" && (
+                        <div className="text-white">
+                          <span className="text-white">IP:</span>{" "}
+                          <span className="text-green-400 font-mono">
+                            {selectedSessionData.customerInfo.ipAddress}
+                          </span>
+                        </div>
+                      )}
                     {selectedSessionData.customerInfo?.isVpn && (
                       <div className="bg-red-500/20 border border-red-500/50 rounded px-2 py-1 flex items-center gap-1.5">
-                        <ShieldAlert size={14} className="text-red-400 md:w-4 md:h-4" />
-                        <span className="text-red-400 font-semibold">VPN/Proxy Detected</span>
+                        <ShieldAlert
+                          size={14}
+                          className="text-red-400 md:w-4 md:h-4"
+                        />
+                        <span className="text-red-400 font-semibold">
+                          VPN/Proxy Detected
+                        </span>
                         {selectedSessionData.customerInfo?.vpnProvider && (
-                          <span className="text-red-300 text-[9px] md:text-[10px]">({selectedSessionData.customerInfo.vpnProvider})</span>
+                          <span className="text-red-300 text-[9px] md:text-[10px]">
+                            ({selectedSessionData.customerInfo.vpnProvider})
+                          </span>
                         )}
                       </div>
                     )}
@@ -1157,23 +1347,25 @@ function AgentDashboard() {
               {selectedSessionData.messages?.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.sender === 'user' ? 'justify-start' : 'justify-end'}`}
+                  className={`flex ${msg.sender === "user" ? "justify-start" : "justify-end"}`}
                 >
                   <div
                     className={`max-w-[85%] md:max-w-[70%] rounded-lg px-3 py-1.5 md:px-4 md:py-2 ${
-                      msg.sender === 'user'
-                        ? 'bg-gray-700 text-white'
-                        : 'bg-gray-800 text-gray-200 border border-gray-600'
+                      msg.sender === "user"
+                        ? "bg-gray-700 text-white"
+                        : "bg-gray-800 text-gray-200 border border-gray-600"
                     }`}
                   >
                     {msg.agentName && (
-                      <p className="text-[10px] md:text-xs text-purple-400 mb-0.5 md:mb-1">{msg.agentName}</p>
+                      <p className="text-[10px] md:text-xs text-purple-400 mb-0.5 md:mb-1">
+                        {msg.agentName}
+                      </p>
                     )}
 
                     {/* File attachment */}
                     {msg.fileUrl && (
                       <div className="mb-2 relative group">
-                        {msg.fileType === 'image' && (
+                        {msg.fileType === "image" && (
                           <div className="relative">
                             <img
                               src={msg.fileUrl}
@@ -1181,7 +1373,7 @@ function AgentDashboard() {
                               className="max-w-full rounded-lg max-h-64 object-cover cursor-pointer hover:opacity-90 transition"
                               onClick={() => setSelectedImage(msg.fileUrl)}
                             />
-                            {msg.sender === 'agent' && (
+                            {msg.sender === "agent" && (
                               <button
                                 onClick={() => deleteFile(selectedSession, msg)}
                                 className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1192,12 +1384,15 @@ function AgentDashboard() {
                             )}
                           </div>
                         )}
-                        {msg.fileType === 'video' && (
+                        {msg.fileType === "video" && (
                           <div className="relative">
-                            <video controls className="max-w-full rounded-lg max-h-64">
+                            <video
+                              controls
+                              className="max-w-full rounded-lg max-h-64"
+                            >
                               <source src={msg.fileUrl} />
                             </video>
-                            {msg.sender === 'agent' && (
+                            {msg.sender === "agent" && (
                               <button
                                 onClick={() => deleteFile(selectedSession, msg)}
                                 className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1208,13 +1403,18 @@ function AgentDashboard() {
                             )}
                           </div>
                         )}
-                        {msg.fileType === 'application' && (
+                        {msg.fileType === "application" && (
                           <div className="flex items-center gap-2">
-                            <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm underline">
+                            <a
+                              href={msg.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm underline"
+                            >
                               <File size={16} />
                               {msg.fileName}
                             </a>
-                            {msg.sender === 'agent' && (
+                            {msg.sender === "agent" && (
                               <button
                                 onClick={() => deleteFile(selectedSession, msg)}
                                 className="bg-red-500 hover:bg-red-600 text-white rounded-full p-1"
@@ -1229,22 +1429,36 @@ function AgentDashboard() {
                     )}
 
                     {/* Only show text if it's not empty and not a file placeholder */}
-                    {msg.text && msg.text.trim() !== '' && !msg.text.startsWith('[File:') && (
-                      <p className="text-xs md:text-sm">{msg.text}</p>
-                    )}
+                    {msg.text &&
+                      msg.text.trim() !== "" &&
+                      !msg.text.startsWith("[File:") && (
+                        <p className="text-xs md:text-sm">{msg.text}</p>
+                      )}
                     <div className="flex items-center justify-end gap-0.5 md:gap-1 mt-0.5 md:mt-1">
                       <p className="text-[9px] md:text-[10px] opacity-60">
-                        {new Date(msg.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.timestamp).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                       {/* WhatsApp-style status ticks for agent messages */}
-                      {msg.sender === 'agent' && (
+                      {msg.sender === "agent" && (
                         <span className="ml-0.5 md:ml-1">
-                          {messageStatuses[msg.id] === 'read' ? (
-                            <CheckCheck size={10} className="text-blue-400 md:w-3 md:h-3" />
-                          ) : messageStatuses[msg.id] === 'delivered' ? (
-                            <CheckCheck size={10} className="text-gray-400 md:w-3 md:h-3" />
+                          {messageStatuses[msg.id] === "read" ? (
+                            <CheckCheck
+                              size={10}
+                              className="text-blue-400 md:w-3 md:h-3"
+                            />
+                          ) : messageStatuses[msg.id] === "delivered" ? (
+                            <CheckCheck
+                              size={10}
+                              className="text-white md:w-3 md:h-3"
+                            />
                           ) : (
-                            <Check size={10} className="text-gray-400 md:w-3 md:h-3" />
+                            <Check
+                              size={10}
+                              className="text-white md:w-3 md:h-3"
+                            />
                           )}
                         </span>
                       )}
@@ -1258,11 +1472,22 @@ function AgentDashboard() {
                   <div className="bg-gray-700 rounded-lg px-3 py-1.5 md:px-4 md:py-2">
                     <div className="flex items-center gap-1.5 md:gap-2">
                       <div className="flex gap-0.5 md:gap-1">
-                        <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        <span
+                          className="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0ms" }}
+                        ></span>
+                        <span
+                          className="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "150ms" }}
+                        ></span>
+                        <span
+                          className="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "300ms" }}
+                        ></span>
                       </div>
-                      <span className="text-gray-400 text-[10px] md:text-xs">typing...</span>
+                      <span className="text-white text-[10px] md:text-xs">
+                        typing...
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1273,20 +1498,39 @@ function AgentDashboard() {
             </div>
 
             {/* Reply Input */}
-            <form onSubmit={sendReply} className="p-2 md:p-4 border-t border-gray-700 bg-gray-900/30">
+            <form
+              onSubmit={sendReply}
+              className="p-2 md:p-4 border-t border-gray-700 bg-gray-900/30"
+            >
               {/* Selected files preview */}
               {selectedFiles.length > 0 && (
                 <div className="mb-2 md:mb-3 flex flex-wrap gap-1.5 md:gap-2">
                   {selectedFiles.map((file, index) => (
-                    <div key={index} className="bg-gray-800/50 border border-gray-700 rounded-lg p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2">
-                      {file.type.startsWith('image/') ? (
-                        <Image size={14} className="text-purple-400 md:w-4 md:h-4" />
-                      ) : file.type.startsWith('video/') ? (
-                        <Video size={14} className="text-purple-400 md:w-4 md:h-4" />
+                    <div
+                      key={index}
+                      className="bg-gray-800/50 border border-gray-700 rounded-lg p-1.5 md:p-2 flex items-center gap-1.5 md:gap-2"
+                    >
+                      {file.type.startsWith("image/") ? (
+                        <Image
+                          size={14}
+                          className="text-purple-400 md:w-4 md:h-4"
+                        />
+                      ) : file.type.startsWith("video/") ? (
+                        <Video
+                          size={14}
+                          className="text-purple-400 md:w-4 md:h-4"
+                        />
                       ) : (
-                        <File size={14} className="text-purple-400 md:w-4 md:h-4" />
+                        <File
+                          size={14}
+                          className="text-purple-400 md:w-4 md:h-4"
+                        />
                       )}
-                      <span className="text-white text-[10px] md:text-xs">{file.name.length > 15 ? file.name.substring(0, 15) + '...' : file.name}</span>
+                      <span className="text-white text-[10px] md:text-xs">
+                        {file.name.length > 15
+                          ? file.name.substring(0, 15) + "..."
+                          : file.name}
+                      </span>
                       <button
                         type="button"
                         onClick={() => removeFile(index)}
@@ -1303,7 +1547,9 @@ function AgentDashboard() {
                     disabled={isUploading}
                     className="bg-purple-500/20 border border-purple-500/50 text-purple-400 px-2 md:px-3 py-1.5 md:py-2 rounded-lg hover:bg-purple-500/30 disabled:opacity-50 text-[10px] md:text-xs"
                   >
-                    {isUploading ? 'Uploading...' : `Send ${selectedFiles.length}`}
+                    {isUploading
+                      ? "Uploading..."
+                      : `Send ${selectedFiles.length}`}
                   </button>
                 </div>
               )}
@@ -1359,14 +1605,19 @@ function AgentDashboard() {
             {/* Mobile menu button when no chat selected */}
             <button
               onClick={() => setShowSidebar(true)}
-              className="md:hidden absolute top-3 left-3 p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-gray-400"
+              className="md:hidden absolute top-3 left-3 p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white"
             >
               <Menu size={20} />
             </button>
 
             <div className="text-center">
-              <MessageCircle size={32} className="text-gray-700 mx-auto mb-3 md:w-12 md:h-12 md:mb-4" />
-              <p className="text-gray-500 text-sm md:text-base">Select a chat or claim one from waiting list</p>
+              <MessageCircle
+                size={32}
+                className="text-white mx-auto mb-3 md:w-12 md:h-12 md:mb-4"
+              />
+              <p className="text-white text-sm md:text-base">
+                Select a chat or claim one from waiting list
+              </p>
             </div>
           </div>
         )}
@@ -1408,8 +1659,12 @@ function AgentDashboard() {
               <div className="flex items-center gap-3">
                 <UserCircle size={24} className="text-purple-400" />
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold text-white">Customer List</h2>
-                  <p className="text-gray-400 text-sm">Total: {allCustomers.length} customers</p>
+                  <h2 className="text-xl md:text-2xl font-bold text-white">
+                    Customer List
+                  </h2>
+                  <p className="text-white text-sm">
+                    Total: {allCustomers.length} customers
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1422,7 +1677,7 @@ function AgentDashboard() {
                 </button>
                 <button
                   onClick={() => setShowCustomerList(false)}
-                  className="text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-full p-2 transition"
+                  className="text-white hover:text-white bg-gray-700 hover:bg-gray-600 rounded-full p-2 transition"
                 >
                   <X size={20} />
                 </button>
@@ -1432,7 +1687,7 @@ function AgentDashboard() {
             {/* Table */}
             <div className="flex-1 overflow-auto p-4 md:p-6">
               <table className="w-full text-left text-sm">
-                <thead className="text-xs text-gray-400 uppercase bg-gray-900/50 sticky top-0">
+                <thead className="text-xs text-white uppercase bg-gray-900/50 sticky top-0">
                   <tr>
                     <th className="px-4 py-3">Full Name</th>
                     <th className="px-4 py-3">Email</th>
@@ -1449,21 +1704,21 @@ function AgentDashboard() {
                       className="border-b border-gray-700 hover:bg-gray-700/30 transition"
                     >
                       <td className="px-4 py-3 text-white font-medium">
-                        {customer.full_name || '-'}
+                        {customer.full_name || "-"}
                       </td>
                       <td className="px-4 py-3 text-gray-300">
-                        {customer.email || '-'}
+                        {customer.email || "-"}
                       </td>
                       <td className="px-4 py-3 text-gray-300 font-mono">
-                        {customer.phone || '-'}
+                        {customer.phone || "-"}
                       </td>
                       <td className="px-4 py-3 text-blue-400">
-                        {customer.country || '-'}
+                        {customer.country || "-"}
                       </td>
                       <td className="px-4 py-3 text-green-400 font-mono text-xs">
-                        {customer.ip_address || '-'}
+                        {customer.ip_address || "-"}
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
+                      <td className="px-4 py-3 text-white text-xs">
                         {new Date(customer.created_at).toLocaleString()}
                       </td>
                     </tr>
@@ -1471,7 +1726,7 @@ function AgentDashboard() {
                 </tbody>
               </table>
               {allCustomers.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-white">
                   No customers found
                 </div>
               )}
