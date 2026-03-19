@@ -19,7 +19,7 @@ code {
 
 .gradient-bg {
   background:
-    url("public/water-marker_1.png") center center no-repeat,
+    url("/water-marker_1.png") center center no-repeat,
     linear-gradient(
       90deg,
       rgba(42, 10, 12, 1) 0%,
