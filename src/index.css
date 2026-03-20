@@ -18,18 +18,12 @@ code {
 }
 
 .gradient-bg {
-  background:
-    url("public/water-marker_1.png") center center no-repeat,
-    linear-gradient(
-      90deg,
-      rgba(42, 10, 12, 1) 0%,
-      rgba(199, 87, 171, 1) 50%,
-      rgba(237, 83, 88, 1) 100%
-    );
-  background-size:
-    28vw auto,
-    cover;
-  background-blend-mode: overlay;
+  background: linear-gradient(
+    90deg,
+    rgba(42, 10, 12, 1) 0%,
+    rgba(199, 87, 171, 1) 50%,
+    rgba(237, 83, 88, 1) 100%
+  );
 }
 
 .gradient-bg-rest {
@@ -39,4 +33,11 @@ code {
     rgba(199, 87, 171, 1) 50%,
     rgba(237, 83, 88, 1) 100%
   );
+}
+
+.water-mark {
+  background: url("public/water-marker_1.png") center center no-repeat;
+  background-size:
+    max(280px, 22vw) auto,
+    cover;
 }

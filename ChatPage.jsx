@@ -786,6 +786,7 @@ function ChatPage({ onBack }) {
 
   return (
     <div className="min-h-screen gradient-bg flex flex-col">
+      <div className="w-full h-screen fixed top-0 left-0 right-0 water-mark"></div>
       {/* Header - Fixed at top */}
       <header className="sticky top-0 z-50 bg-[#300A24] p-3 md:p-4 shadow-lg border-b border-[#E95420]/30">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -825,7 +826,7 @@ function ChatPage({ onBack }) {
       </header>
 
       {/* Chat Container */}
-      <div className="flex-1 max-w-4xl w-full mx-auto flex flex-col relative">
+      <div className="flex-1 max-w-4xl w-full mx-auto flex flex-col z-10 relative">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4">
           {isLoadingHistory && (
