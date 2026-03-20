@@ -52,7 +52,8 @@ function ChatPage({ onBack }) {
   const [showForm, setShowForm] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     countryCode: "+44", // Default: UK
@@ -727,7 +728,7 @@ function ChatPage({ onBack }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId: sessionId,
-          fullName: customerInfo.fullName,
+          fullName: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
           email: customerInfo.email,
           phone: `${customerInfo.countryCode}${customerInfo.phone}`, // Combine country code + phone
           clientIp: clientIp,
@@ -758,7 +759,7 @@ function ChatPage({ onBack }) {
               sessionId: sessionId,
               customerInfo: {
                 customerId: result.customerId,
-                fullName: customerInfo.fullName,
+                fullName: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
                 email: customerInfo.email,
                 phone: `${customerInfo.countryCode}${customerInfo.phone}`,
                 ipAddress: clientIp,
@@ -773,7 +774,7 @@ function ChatPage({ onBack }) {
           ...prev,
           {
             id: `system_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-            text: `Thank you ${customerInfo.fullName}! Your information has been saved. An agent will assist you shortly.`,
+            text: `Thank you ${customerInfo.firstName}! Your information has been saved. An agent will assist you shortly.`,
             sender: "system",
             timestamp: new Date(),
           },
@@ -1026,12 +1027,12 @@ function ChatPage({ onBack }) {
                     <input
                       type="text"
                       required
-                      value={customerInfo.fullName}
+                      value={customerInfo.firstName}
                       onChange={(e) => {
                         setFormError("");
                         setCustomerInfo((prev) => ({
                           ...prev,
-                          fullName: e.target.value,
+                          firstName: e.target.value,
                         }));
                       }}
                       className="w-full bg-white/10 border border-[#E95420]/30 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
@@ -1051,12 +1052,12 @@ function ChatPage({ onBack }) {
                     <input
                       type="text"
                       required
-                      value={customerInfo.fullName}
+                      value={customerInfo.lastName}
                       onChange={(e) => {
                         setFormError("");
                         setCustomerInfo((prev) => ({
                           ...prev,
-                          fullName: e.target.value,
+                          lastName: e.target.value,
                         }));
                       }}
                       className="w-full bg-white/10 border border-[#E95420]/30 text-white pl-10 pr-4 py-3 rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#E95420]"
